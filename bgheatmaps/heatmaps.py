@@ -1,5 +1,5 @@
 from vedo.colors import colorMap as map_color
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -42,8 +42,6 @@ class heatmap:
         self.interactive = interactive
         self.zoom = zoom
 
-        self.projected = dict()  # type: ignore
-
         # create a scene
         self.scene = Scene(
             atlas_name=atlas_name, title=title, title_color="w", **kwargs
@@ -51,6 +49,8 @@ class heatmap:
 
         # get brain regions colors
         _vmax, _vmin = check_values(values, self.scene.atlas)
+        if _vmax == _vmin:
+            _vmin = _vmax * 0.5
         vmin = vmin or _vmin
         vmax = vmax or _vmax
         self.colors = {
@@ -69,12 +69,21 @@ class heatmap:
         # slice regions and get intersections
         self.slice()
 
-    def show(self):
+    def show(self) -> Tuple[Union[Scene, plt.Figure], Dict[str, list]]:
         # create visualization
         if self.format == "3D":
-            return self.render()
+            view = self.render()
         else:
-            return self.plot()
+            view = self.plot()
+
+        # get output coordinates
+        coordinates: Dict[str, list] = dict()
+        for region in self.values.keys():
+            coordinates[region] = [
+                v for k, v in self.projected.items() if region in k
+            ]
+
+        return view, coordinates
 
     def slice(self):
         """
@@ -93,12 +102,10 @@ class heatmap:
             if r.name != "root"
         ]
 
-        if self.format == "2D":
-            # get plane/regions intersections in plane's coordinates system
-            self.projected = get_plane_regions_intersections(
-                self.plane0, regions
-            )
-        else:
+        # get plane/regions intersections in plane's coordinates system
+        self.projected = get_plane_regions_intersections(self.plane0, regions)
+
+        if self.format == "3D":
             # slice the scene
             for n, plane in enumerate((self.plane0, self.plane1)):
                 self.scene.slice(plane, actors=regions, close_actors=True)
@@ -194,5 +201,5 @@ if __name__ == "__main__":
         title="frontal",
         vmin=-5,
         vmax=3,
-        format="2D",
+        format="3D",
     ).show()
