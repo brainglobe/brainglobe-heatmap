@@ -5,10 +5,10 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
-requirements = ["brainrender"]
+requirements = ["brainrender", "matplotlib", "numpy"]
 
 setup(
-    name="brheatmap",
+    name="bgheatmap",
     version="0.0.1",
     description="Brain regions heatmaps in brainrender",
     long_description=long_description,

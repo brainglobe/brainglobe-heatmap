@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 from brainrender import Scene
 from brainrender import settings, cameras
 
-from brheatmaps.utils import check_values
-from brheatmaps.planes import get_planes, get_plane_regions_intersections
+from bgheatmaps.utils import check_values
+from bgheatmaps.planes import get_planes, get_plane_regions_intersections
 
 # Set settings for heatmap visualization
 settings.SHOW_AXES = False
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     heatmap(
         values,
         position=5200,  # displacement along the AP axis relative to midpoint
-        orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
+        orientation=(1, 1, 1),  # or 'sagittal', or 'top' or a tuple (x,y,z)
         thickness=10,  # thickness of the slices used for rendering (in microns)
         title="frontal",
         vmin=-5,

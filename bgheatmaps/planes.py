@@ -64,7 +64,7 @@ def get_plane_regions_intersections(
     """
     pts = plane.points() - plane.points()[0]
     v = pts[1] / np.linalg.norm(pts[1])
-    w = pts[2] / np.linalg.norm(pts[2])
+    w = -pts[2] / np.linalg.norm(pts[2])
 
     M = np.vstack([v, w]).T  # 3 x 2
 
