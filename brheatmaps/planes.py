@@ -70,14 +70,20 @@ def get_plane_regions_intersections(
 
     projected = {}
     for n, actor in enumerate(regions_actors):
-        # get region/plane intersection points
+        # get region/plane intersection
         intersection = plane.intersectWith(
             actor._mesh.triangulate()
-        ).points()  # points: (N x 3)
+        )  # points: (N x 3)
 
-        if not intersection.shape[0]:
+        if not intersection.points().shape[0]:
             continue  # no intersection
 
-        projected[actor.name] = intersection @ M
+        pieces = intersection.splitByConnectivity()
+        for piece_n, piece in enumerate(pieces):
+
+            # sort coordinates
+            points = piece.join(reset=True).points()
+
+            projected[actor.name + f"_segment_{piece_n}"] = points @ M
 
     return projected

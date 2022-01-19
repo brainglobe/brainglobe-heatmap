@@ -142,10 +142,23 @@ class heatmap:
         """
             Plots the heatmap in 2D using matplotlib
         """
+        self.scene.close()
+
         f, ax = plt.subplots(figsize=(9, 9))
         for r, coords in self.projected.items():
-            ax.fill(coords[:, 0], coords[:, 1], color=self.colors[r], label=r)
+            name, segment = r.split("_segment_")
+            ax.fill(
+                coords[:, 0],
+                coords[:, 1],
+                color=self.colors[name],
+                label=name if segment == "0" else None,
+                lw=1,
+                ec="k",
+            )
 
+        ax.axis("equal")
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
         ax.legend()
         plt.show()
 
@@ -181,4 +194,5 @@ if __name__ == "__main__":
         title="frontal",
         vmin=-5,
         vmax=3,
+        format="2D",
     ).show()
