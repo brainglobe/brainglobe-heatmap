@@ -3,6 +3,8 @@ from typing import Optional, Union, Dict, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
+from myterial import grey_darker
+
 from brainrender import Scene
 from brainrender import settings, cameras
 
@@ -12,9 +14,8 @@ from bgheatmaps.planes import get_planes, get_plane_regions_intersections
 # Set settings for heatmap visualization
 settings.SHOW_AXES = False
 settings.SHADER_STYLE = "cartoon"
-settings.BACKGROUND_COLOR = "#242424"
-settings.ROOT_ALPHA = 0.7
-settings.ROOT_COLOR = "w"
+settings.ROOT_ALPHA = 0.3
+settings.ROOT_COLOR = grey_darker
 
 
 class heatmap:
@@ -41,10 +42,14 @@ class heatmap:
         self.orientation = orientation
         self.interactive = interactive
         self.zoom = zoom
+        self.title = title
 
         # create a scene
         self.scene = Scene(
-            atlas_name=atlas_name, title=title, title_color="w", **kwargs
+            atlas_name=atlas_name,
+            title=title,
+            title_color=grey_darker,
+            **kwargs,
         )
 
         # get brain regions colors
@@ -57,6 +62,7 @@ class heatmap:
             r: list(map_color(v, name=cmap, vmin=vmin, vmax=vmax))
             for r, v in values.items()
         }
+        self.colors["root"] = grey_darker
 
         # get the position of planes to 'slice' thes cene
         self.plane0, self.plane1 = get_planes(
@@ -103,7 +109,9 @@ class heatmap:
         ]
 
         # get plane/regions intersections in plane's coordinates system
-        self.projected = get_plane_regions_intersections(self.plane0, regions)
+        self.projected = get_plane_regions_intersections(
+            self.plane0, regions + [self.scene.root]
+        )
 
         if self.format == "3D":
             # slice the scene
@@ -121,6 +129,9 @@ class heatmap:
 
         # set brain regions colors
         for region, color in self.colors.items():
+            if region == "root":
+                continue
+
             self.scene.get_actors(br_class="brain region", name=region)[
                 0
             ].color(color)
@@ -158,14 +169,17 @@ class heatmap:
                 coords[:, 0],
                 coords[:, 1],
                 color=self.colors[name],
-                label=name if segment == "0" else None,
+                label=name if segment == "0" and name != "root" else None,
                 lw=1,
                 ec="k",
+                zorder=-1 if name == "root" else None,
+                alpha=0.3 if name == "root" else None,
             )
 
         ax.axis("equal")
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
+        ax.set(title=self.title)
         ax.legend()
         plt.show()
 
@@ -173,8 +187,6 @@ class heatmap:
 
 
 if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
     values = dict(  # scalar values for each region
         TH=1,
         RSP=0.2,

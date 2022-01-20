@@ -2,13 +2,15 @@ from typing import Union
 import numpy as np
 from vedo import Arrow
 
+from myterial import pink_dark, blue_dark, amber_lighter, grey
 
 from bgheatmaps.heatmaps import heatmap
-
+from bgheatmaps.planes import print_plane
 
 from brainrender import settings
 
-settings.BACKGROUND_COLOR = "#e4e3cf"
+settings.BACKGROUND_COLOR = amber_lighter
+settings.ROOT_COLOR = grey
 
 
 class plan(heatmap):
@@ -36,34 +38,38 @@ class plan(heatmap):
             **kwagrs,
         )
 
-        # import pyinspect as pi
-        # pi.what(self.plane0.mesh)
-        # raise ValueError(self.plane0)
+        # print planes information
+        print_plane("Plane 0", self.plane0, blue_dark)
+        print_plane("Plane 1", self.plane1, pink_dark)
 
     def slice(self):
+        # add brain regions
         for region, value in self.regions.items():
             self.scene.add_brain_region(region)
 
-    def render(self):
+    def show(self):
         """
             Renders the hetamap visualization as a 3D scene in brainrender.
         """
         self.scene.root._mesh.alpha(0.3)
 
         # show sliced brain regions
-        for region, color in self.colors.items():
+        for region in self.colors.keys():
             actor = self.scene.get_actors(
                 br_class="brain region", name=region
             )[0]
             intersection = self.plane0.intersectWith(actor._mesh)
-            self.scene.remove(actor)
+
             if len(intersection.points()):
                 intersection.lw(3)
-                self.scene.add(intersection, transform=False, color="k")
+                self.scene.add(intersection, transform=False)
+
+            if region != "root":
+                self.scene.remove(actor)
 
         # add slicing planes and their norms
         for plane, color, alpha in zip(
-            (self.plane0, self.plane1), ("#29B6F6", "#D81B60"), (0.8, 0.3)
+            (self.plane0, self.plane1), (blue_dark, pink_dark), (0.8, 0.3)
         ):
             plane.alpha(alpha).color(color)
 

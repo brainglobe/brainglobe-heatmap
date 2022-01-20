@@ -2,6 +2,7 @@
 workspace.py
 *.mp4
 .vscode
+.vscode/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

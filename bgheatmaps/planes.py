@@ -1,5 +1,10 @@
 from typing import Union, Tuple
 import numpy as np
+from rich.panel import Panel
+from rich.table import Table
+from rich import print
+
+from myterial import orange, amber
 
 from vedo import Plane
 from brainrender import Scene
@@ -52,6 +57,37 @@ def get_planes(
     plane1 = scene.atlas.get_plane(pos=p1, norm=tuple(norm1))
 
     return plane0, plane1
+
+
+def print_plane(name: str, plane: Plane, color: str):
+    """
+        Prints nicely formatted information about a plane
+    """
+
+    def fmt_array(x: np.ndarray) -> str:
+        return str(tuple([round(v, 2) for v in x]))
+
+    # create a table to display the vertices posittion
+    vert_tb = Table(box=None)
+    vert_tb.add_column(style=f"{amber}", justify="right")
+    vert_tb.add_column(style="white")
+
+    for i in range(4):
+        vert_tb.add_row(f"({i})", fmt_array(plane.mesh.points()[i]))
+
+    tb = Table(box=None)
+    tb.add_column(style=f"bold {orange}", justify="right")
+    tb.add_column(style="white")
+
+    tb.add_row("center point: ", fmt_array(plane.mesh.center))
+    tb.add_row("norm: ", str(tuple(plane.mesh.normal)))
+    tb.add_row("Vertices: ", vert_tb)
+
+    print(
+        Panel.fit(
+            tb, title=f"[white bold]{name}", style=color, title_align="left"
+        )
+    )
 
 
 def get_plane_regions_intersections(
