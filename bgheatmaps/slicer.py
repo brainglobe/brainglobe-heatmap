@@ -154,8 +154,13 @@ def get_structures_slice_coords(
     """
 
     scene = Scene(atlas_name=atlas_name)
-    regions_actors = scene.add_brain_region(*regions)
+    if len(regions) == 1:
+        regions_actors = [scene.add_brain_region(*regions)]
+    else:
+        regions_actors = scene.add_brain_region(*regions)
 
     slicer = Slicer(position, orientation, 100, scene.root)
 
-    return slicer.get_structures_slice_coords(regions_actors, scene.root)[1]
+    structures_coords = slicer.get_structures_slice_coords(regions_actors, scene.root)[1]
+    scene.close()
+    return structures_coords
