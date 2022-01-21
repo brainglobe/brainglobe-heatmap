@@ -56,6 +56,7 @@ class Slicer:
             bounds[3] - bounds[2],
             bounds[5] - bounds[4],
         )
+        length += length / 3
 
         self.plane0 = Actor(
             Plane(pos=position, normal=norm0, sx=length, sy=length),

@@ -1,6 +1,12 @@
 # BG Heatmaps
 Rendering heatmaps with brainrender.
 
+
+
+[![DOI](https://zenodo.org/badge/442271642.svg)](https://zenodo.org/badge/latestdoi/442271642)
+
+
+
 `Bgheatmaps` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
 
 ![](images/hm_2d.png)
@@ -108,3 +114,10 @@ coordinates = bgh.get_plane_coordinates(
 )
 ```
 
+
+# Citing bgheatmaps
+If you use `bgheatmaps` in your work, please cite it as:
+
+```
+Federico Claudi. (2022). brainglobe/bg-heatmaps: Initial release (V0.1). Zenodo. https://doi.org/10.5281/zenodo.5887587
+```
