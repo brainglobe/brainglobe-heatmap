@@ -6,11 +6,12 @@ from brainrender._io import load_mesh_from_file
 import bgheatmaps as bgh
 
 """
-
+    This exmaple shows how to go from cell counts per region (e.g. as outputted by
+    cellfinder) to a plot showing the density (count/volume) of cells in each brain region
 """
 
 # get the number of cells for each region
-data = pd.read_hdf("examples/cell-detect-paper-cells.h5")
+data = pd.read_hdf("examples/cell_counts_example.h5")
 cell_counts = data.groupby("region").count()
 
 # get regions two levels up the hierarchy
@@ -38,9 +39,13 @@ cell_counts = cell_counts.loc[cell_counts.density > 5 * 1e-9]
 print(cell_counts)
 
 
-f, coordinates = bgh.heatmap(
+f = bgh.heatmap(
     cell_counts.density.to_dict(),
-    position=500,  # displacement along the AP axis relative to midpoint
+    position=(
+        8000,
+        5000,
+        5000,
+    ),  # displacement along the AP axis relative to midpoint
     orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
     title="cell density",
     format="2D",

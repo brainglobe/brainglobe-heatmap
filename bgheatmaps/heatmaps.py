@@ -9,9 +9,9 @@ from myterial import grey_darker
 
 from brainrender import Scene
 from brainrender import settings, cameras
+from brainrender.atlas import Atlas
 
-from bgheatmaps.utils import check_values
-from bgheatmaps.planes import get_planes, get_plane_regions_intersections
+from bgheatmaps.slicer import Slicer
 
 # Set settings for heatmap visualization
 settings.SHOW_AXES = False
@@ -20,11 +20,30 @@ settings.ROOT_ALPHA = 0.3
 settings.ROOT_COLOR = grey_darker
 
 
+def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
+    """
+    Checks that the passed heatmap values meet two criteria:
+        - keys should be acronyms of brainregions
+        - values should be numbers
+    """
+    for k, v in values.items():
+        if not isinstance(v, (float, int)):
+            raise ValueError(
+                f'Heatmap values should be floats, not: {type(v)} for entry "{k}"'
+            )
+
+        if k not in atlas.lookup_df.acronym.values:
+            raise ValueError(f'Region name "{k}" not recognized')
+
+    vmax, vmin = max(values.values()), min(values.values())
+    return vmax, vmin
+
+
 class heatmap:
     def __init__(
         self,
         values: Dict[str, float],
-        position: float = 0,
+        position: Union[list, tuple, np.ndarray],
         orientation: Union[str, tuple] = "frontal",
         title: Optional[str] = None,
         cmap: str = "bwr",
@@ -55,76 +74,54 @@ class heatmap:
             **kwargs,
         )
 
+        # prep colors range
+        self.prepare_colors(values, cmap, vmin, vmax)
+
+        # add regions to the brainrender scene
+        for region, value in self.values.items():
+            self.scene.add_brain_region(region)
+
+        self.regions_meshes = [
+            r
+            for r in self.scene.get_actors(br_class="brain region")
+            if r.name != "root"
+        ]
+
+        # prepare slicer object
+        self.slicer = Slicer(position, orientation, thickness, self.scene.root)
+
+    def prepare_colors(
+        self,
+        values: dict,
+        cmap: str,
+        vmin: Optional[float],
+        vmax: Optional[float],
+    ):
         # get brain regions colors
         _vmax, _vmin = check_values(values, self.scene.atlas)
         if _vmax == _vmin:
             _vmin = _vmax * 0.5
+
         vmin = vmin or _vmin
         vmax = vmax or _vmax
         self.vmin, self.vmax = vmin, vmax
+
         self.colors = {
             r: list(map_color(v, name=cmap, vmin=vmin, vmax=vmax))
             for r, v in values.items()
         }
         self.colors["root"] = grey_darker
 
-        # get the position of planes to 'slice' thes cene
-        self.plane0, self.plane1 = get_planes(
-            self.scene,
-            orientation=orientation,
-            position=position,
-            thickness=thickness,
-        )
-
-        # slice regions and get intersections
-        self.slice()
-
-    def show(self) -> Tuple[Union[Scene, plt.Figure], Dict[str, list]]:
-        # create visualization
+    def show(self) -> Union[Scene, plt.Figure]:
+        """
+            Creates a 2D plot or 3D rendering of the heatmap
+        """
         if self.format == "3D":
+            self.slicer.slice_scene(self.scene, self.regions_meshes)
             view = self.render()
         else:
             view = self.plot()
-
-        # get output coordinates
-        coordinates: Dict[str, list] = dict()
-        for region in self.values.keys():
-            coordinates[region] = [
-                v for k, v in self.projected.items() if region in k
-            ]
-
-        return view, coordinates
-
-    def slice(self):
-        """
-            It populates a brainrender scene with all the brain regions in the keys of 
-            of the value dictionary and slices them with two planes.
-            Optionally it can compute the 2D projection of the plane/region intersection points
-            in the plane's coordinates system for 2D plotting.
-        """
-        # add brain regions to scene
-        for region, value in self.values.items():
-            self.scene.add_brain_region(region)
-
-        regions = [
-            r
-            for r in self.scene.get_actors(br_class="brain region")
-            if r.name != "root"
-        ]
-
-        # get plane/regions intersections in plane's coordinates system
-        self.projected = get_plane_regions_intersections(
-            self.plane0, regions + [self.scene.root]
-        )
-
-        if self.format == "3D":
-            # slice the scene
-            for n, plane in enumerate((self.plane0, self.plane1)):
-                self.scene.slice(plane, actors=regions, close_actors=True)
-
-            self.scene.slice(
-                self.plane0, actors=self.scene.root, close_actors=False
-            )
+        return view
 
     def render(self) -> Scene:
         """
@@ -148,7 +145,7 @@ class heatmap:
                 camera = self.orientation
         else:
             self.orientation = np.array(self.orientation)
-            com = self.plane0.centerOfMass()
+            com = self.slicer.plane0.centerOfMass()
             camera = {
                 "pos": com - self.orientation * 2 * np.linalg.norm(com),
                 "viewup": (0, -1, 0),
@@ -165,9 +162,12 @@ class heatmap:
             Plots the heatmap in 2D using matplotlib
         """
         self.scene.close()
+        projected, _ = self.slicer.get_plane_coordinates(
+            self.regions_meshes, self.scene.root
+        )
 
         f, ax = plt.subplots(figsize=(9, 9))
-        for r, coords in self.projected.items():
+        for r, coords in projected.items():
             name, segment = r.split("_segment_")
             ax.fill(
                 coords[:, 0],
@@ -194,6 +194,11 @@ class heatmap:
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
         ax.set(title=self.title)
+
+        if isinstance(self.orientation, str) or np.sum(self.orientation) == 1:
+            # orthogonal projection
+            ax.set(xlabel="μm", ylabel="μm")
+
         ax.legend()
         plt.show()
 
@@ -221,9 +226,13 @@ if __name__ == "__main__":
 
     heatmap(
         values,
-        position=5200,  # displacement along the AP axis relative to midpoint
+        position=(
+            8000,
+            5000,
+            5000,
+        ),  # displacement along the AP axis relative to midpoint
         orientation=(1, 1, 1),  # or 'sagittal', or 'top' or a tuple (x,y,z)
-        thickness=10,  # thickness of the slices used for rendering (in microns)
+        thickness=250,  # thickness of the slices used for rendering (in microns)
         title="frontal",
         vmin=-5,
         vmax=3,
