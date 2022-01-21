@@ -78,8 +78,7 @@ class heatmap:
         self.prepare_colors(values, cmap, vmin, vmax)
 
         # add regions to the brainrender scene
-        for region, value in self.values.items():
-            self.scene.add_brain_region(region)
+        self.scene.add_brain_region(*self.values.keys())
 
         self.regions_meshes = [
             r

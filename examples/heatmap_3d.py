@@ -23,10 +23,10 @@ values = dict(  # scalar values for each region
 )
 
 
-scene, coordinates = bgh.heatmap(
+scene = bgh.heatmap(
     values,
     position=(8000, 5000, 5000),
-    orientation=(0, 1, 1),  # or 'sagittal', or 'top' or a tuple (x,y,z)
+    orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
     thickness=1000,
     title="frontal",
     vmin=-5,

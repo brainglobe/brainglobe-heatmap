@@ -1,4 +1,4 @@
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 from vedo import Plane
 import numpy as np
 
@@ -78,6 +78,8 @@ class Slicer:
         returning the coordinates of each region as a set of XY (i.e. in the plane's
         coordinates system) coordinates
         """
+        regions = regions + [root]
+
         pts = self.plane0.points() - self.plane0.points()[0]
         v = pts[1] / np.linalg.norm(pts[1])
         w = pts[2] / np.linalg.norm(pts[2])
@@ -85,7 +87,7 @@ class Slicer:
         M = np.vstack([v, w]).T  # 3 x 2
 
         projected: Dict[str, np.ndarray] = {}
-        for n, actor in enumerate(regions + [root]):
+        for n, actor in enumerate(regions):
             # get region/plane intersection
             intersection = self.plane0.intersectWith(
                 actor._mesh.triangulate()
@@ -104,7 +106,8 @@ class Slicer:
 
         # get output coordinates
         coordinates: Dict[str, List[np.ndarray]] = dict()
-        for region in projected.keys():
+
+        for region in [r.name for r in regions]:
             coordinates[region] = [
                 v for k, v in projected.items() if region in k
             ]
@@ -136,3 +139,22 @@ class Slicer:
             scene.slice(plane, actors=regions, close_actors=True)
 
         scene.slice(self.plane0, actors=scene.root, close_actors=False)
+
+
+def get_plane_coordinates(
+    regions: List[str],
+    position: Union[list, tuple, np.ndarray],
+    orientation: Union[str, tuple] = "frontal",
+    atlas_name: Optional[str] = None,
+) -> Dict[str, List[np.ndarray]]:
+    """
+        Given a list of regions name and a set of plane parameters, it returns 
+        the coordinates of the plane/regions' intersection in the plane's coordinates
+    """
+
+    scene = Scene(atlas_name=atlas_name)
+    regions_actors = scene.add_brain_region(*regions)
+
+    slicer = Slicer(position, orientation, 100, scene.root)
+
+    return slicer.get_plane_coordinates(regions_actors, scene.root)[1]

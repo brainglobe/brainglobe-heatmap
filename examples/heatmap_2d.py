@@ -23,7 +23,7 @@ values = dict(  # scalar values for each region
 )
 
 
-f, coordinates = bgh.heatmap(
+f = bgh.heatmap(
     values,
     position=(
         8000,
