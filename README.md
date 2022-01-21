@@ -114,6 +114,12 @@ coordinates = bgh.get_plane_coordinates(
 )
 ```
 
+## Using `bgheatmaps` with other atlases.
+
+`Bgheatmaps` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmaps`'s functionality is compatible with any of the atlases supported by the atlas API. 
+`bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
+For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/introduction](documentation).
+
 
 # Citing bgheatmaps
 If you use `bgheatmaps` in your work, please cite it as:

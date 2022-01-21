@@ -54,7 +54,7 @@ class plan(heatmap):
         orientation: Union[str, tuple] = "frontal",
         thickness: float = 10,
         arrow_scale: float = 10,
-        **kwagrs,
+        **kwargs,
     ):
         self.arrow_scale = arrow_scale
 
@@ -67,7 +67,7 @@ class plan(heatmap):
             orientation=orientation,
             thickness=thickness,
             format="3D",
-            **kwagrs,
+            **kwargs,
         )
 
         # print planes information

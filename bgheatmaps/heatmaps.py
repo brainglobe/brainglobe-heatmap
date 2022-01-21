@@ -111,18 +111,18 @@ class heatmap:
         }
         self.colors["root"] = grey_darker
 
-    def show(self) -> Union[Scene, plt.Figure]:
+    def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
             Creates a 2D plot or 3D rendering of the heatmap
         """
         if self.format == "3D":
             self.slicer.slice_scene(self.scene, self.regions_meshes)
-            view = self.render()
+            view = self.render(**kwargs)
         else:
-            view = self.plot()
+            view = self.plot(**kwargs)
         return view
 
-    def render(self) -> Scene:
+    def render(self, **kwargs) -> Scene:
         """
             Renders the hetamap visualization as a 3D scene in brainrender.
         """
@@ -156,7 +156,7 @@ class heatmap:
         )
         return self.scene
 
-    def plot(self) -> plt.Figure:
+    def plot(self, show_legend: bool = False, **kwargs) -> plt.Figure:
         """
             Plots the heatmap in 2D using matplotlib
         """
@@ -198,7 +198,8 @@ class heatmap:
             # orthogonal projection
             ax.set(xlabel="μm", ylabel="μm")
 
-        ax.legend()
+        if show_legend:
+            ax.legend()
         plt.show()
 
         return f
