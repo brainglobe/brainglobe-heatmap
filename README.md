@@ -71,6 +71,33 @@ planner = bgh.plan(
 
 The position of the center of the plane is given by a set of `(x, y, z)` coordinates. The orientation can be specified by a string (`frontal`, `sagittal`, `horizontal`) which will result in a standard orthogonal slice, or by a vector `(x, y, z)` with the orientation along the 3 axes.
 
+Whe using one of the named orientation, you don't need to pass a whole set of `(x, y, z)` coordinates for the plane center. A single value is sufficient as the other two won't affect the plane position:
+
+```python
+f = bgh.heatmap(
+    values,
+    position=1000,
+    orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    thickness=1000,
+    atlas_name="allen_cord_20um",
+    format='2D',
+).show()
+
+```
+
+Also, you can create a slice with a plane centered in the brain by passing `position=None`:
+```python
+f = bgh.heatmap(
+    values,
+    position=None,
+    orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    thickness=1000,
+    atlas_name="mpin_zfish_1um",
+    format='2D',
+    title='zebra fish heatmap'
+).show(xlabel='AP (μm)', ylabel='DV (μm)')
+```
+
 ### Visualization
 Once happy with the position of the slicing planes, creating a visualization is as simple as:
 

@@ -25,8 +25,9 @@ values = {
 
 f = bgh.heatmap(
     values,
-    position=1000,  # displacement relative to midpoint
+    position=1000,
     orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=1000,
     atlas_name="allen_cord_20um",
-).show(zoom=30)
+    format="2D",
+).show()

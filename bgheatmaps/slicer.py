@@ -24,7 +24,7 @@ def get_ax_idx(orientation: str) -> int:
 class Slicer:
     def __init__(
         self,
-        position: Union[list, tuple, np.ndarray, float],
+        position: Optional[Union[list, tuple, np.ndarray, float]],
         orientation: Union[str, tuple],
         thickness: float,
         root: Actor,
@@ -33,6 +33,9 @@ class Slicer:
             Computes the position of two planes given a point (position) and an orientation (named orientation or 
             3D vector) + thickness (spacing between the two planes)
         """
+        if position is None:
+            position = root.centerOfMass()
+
         if isinstance(position, (float, int)):
             if isinstance(orientation, str):
                 pval = position
@@ -178,6 +181,8 @@ def get_structures_slice_coords(
 
     slicer = Slicer(position, orientation, 100, scene.root)
 
-    structures_coords = slicer.get_structures_slice_coords(regions_actors, scene.root)[1]
+    structures_coords = slicer.get_structures_slice_coords(
+        regions_actors, scene.root
+    )[1]
     scene.close()
     return structures_coords

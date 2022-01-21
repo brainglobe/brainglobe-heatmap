@@ -158,7 +158,13 @@ class heatmap:
         )
         return self.scene
 
-    def plot(self, show_legend: bool = False, **kwargs) -> plt.Figure:
+    def plot(
+        self,
+        show_legend: bool = False,
+        xlabel: str = "μm",
+        ylabel: str = "μm",
+        **kwargs,
+    ) -> plt.Figure:
         """
             Plots the heatmap in 2D using matplotlib
         """
@@ -198,7 +204,7 @@ class heatmap:
 
         if isinstance(self.orientation, str) or np.sum(self.orientation) == 1:
             # orthogonal projection
-            ax.set(xlabel="μm", ylabel="μm")
+            ax.set(xlabel=xlabel, ylabel=ylabel)
 
         if show_legend:
             ax.legend()
