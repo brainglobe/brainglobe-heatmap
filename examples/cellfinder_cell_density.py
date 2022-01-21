@@ -41,12 +41,8 @@ print(cell_counts)
 
 f = bgh.heatmap(
     cell_counts.density.to_dict(),
-    position=(
-        8000,
-        5000,
-        5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
+    position=(8000, 5000, 5000,),
+    orientation="frontal",  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     title="cell density",
     format="2D",
     cmap="Reds",

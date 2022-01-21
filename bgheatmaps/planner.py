@@ -139,7 +139,7 @@ if __name__ == "__main__":
             5000,
             5000,
         ),  # position of the center point of the plane
-        orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
+        orientation="frontal",  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
         thickness=2000,  # thickness of the slices used for rendering (in microns)
         arrow_scale=750,
     ).show()

@@ -26,12 +26,8 @@ regions = [
 
 planner = bgh.plan(
     regions,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="frontal",  # or 'sagittal', or 'top' or a tuple (x,y,z)
+    position=(8000, 5000, 5000,),
+    orientation="frontal",  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=2000,  # thickness of the slices used for rendering (in microns)
     arrow_scale=750,
 )

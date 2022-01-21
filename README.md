@@ -64,12 +64,12 @@ planner = bgh.plan(
         5000,
         5000,
     ),  
-    orientation="frontal",  # orientation, or 'sagittal', or 'top' or a tuple (x,y,z)
+    orientation="frontal",  # orientation, or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=2000,  # thickness of the slices used for rendering (in microns)
 )
 ```
 
-The position of the center of the plane is given by a set of `(x, y, z)` coordinates. The orientation can be specified by a string (`frontal`, `sagittal`, `top`) which will result in a standard orthogonal slice, or by a vector `(x, y, z)` with the orientation along the 3 axes.
+The position of the center of the plane is given by a set of `(x, y, z)` coordinates. The orientation can be specified by a string (`frontal`, `sagittal`, `horizontal`) which will result in a standard orthogonal slice, or by a vector `(x, y, z)` with the orientation along the 3 axes.
 
 ### Visualization
 Once happy with the position of the slicing planes, creating a visualization is as simple as:
@@ -82,9 +82,9 @@ bgh.heatmap(
         8000,
         5000,
         5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="top",  # 'frontal' or 'sagittal', or 'top' or a tuple (x,y,z)
-    title="top view",
+    ),  
+    orientation="horizontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    title="horizontal view",
     vmin=-5,
     vmax=3,
     cmap='Red',
@@ -109,8 +109,8 @@ coordinates = bgh.get_plane_coordinates(
         8000,
         5000,
         5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="frontal",  # 'frontal' or 'sagittal', or 'top' or a tuple (x,y,z)
+    ),  
+    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
 )
 ```
 

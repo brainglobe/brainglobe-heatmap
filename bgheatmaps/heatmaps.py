@@ -46,7 +46,7 @@ class heatmap:
         position: Union[list, tuple, np.ndarray],
         orientation: Union[str, tuple] = "frontal",
         title: Optional[str] = None,
-        cmap: str = "bwr",
+        cmap: str = "Reds",
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
         format: str = "3D",  # 3D -> brainrender, 2D -> matplotlib
@@ -140,6 +140,8 @@ class heatmap:
         if isinstance(self.orientation, str):
             if self.orientation == "sagittal":
                 camera = cameras.sagittal_camera2
+            elif self.orientation == "horizontal":
+                camera = "top"
             else:
                 camera = self.orientation
         else:
@@ -226,12 +228,12 @@ if __name__ == "__main__":
 
     heatmap(
         values,
-        position=(
-            8000,
-            5000,
-            5000,
-        ),  # displacement along the AP axis relative to midpoint
-        orientation=(1, 1, 1),  # or 'sagittal', or 'top' or a tuple (x,y,z)
+        position=(8000, 5000, 5000,),
+        orientation=(
+            1,
+            1,
+            1,
+        ),  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
         thickness=250,  # thickness of the slices used for rendering (in microns)
         title="frontal",
         vmin=-5,

@@ -26,12 +26,8 @@ regions = [
 
 coordinates = bgh.get_structures_slice_coords(
     regions,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="frontal",  # 'frontal' or 'sagittal', or 'top' or a tuple (x,y,z)
+    position=(8000, 5000, 5000,),
+    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
 )
 
 print(coordinates)

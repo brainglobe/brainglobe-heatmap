@@ -6,10 +6,25 @@ from brainrender.actor import Actor
 from brainrender.scene import Scene
 
 
+def get_ax_idx(orientation: str) -> int:
+    """
+        Given a named orientation get the idx
+        of the axis orthogonal to the plane,
+    """
+    if orientation == "frontal":
+        return 0
+    elif orientation == "sagittal":
+        return 2
+    elif orientation == "horizontal":
+        return 1
+    else:
+        raise ValueError(f'Orientation "{orientation}" not recognized')
+
+
 class Slicer:
     def __init__(
         self,
-        position: Union[list, tuple, np.ndarray],
+        position: Union[list, tuple, np.ndarray, float],
         orientation: Union[str, tuple],
         thickness: float,
         root: Actor,
@@ -18,19 +33,21 @@ class Slicer:
             Computes the position of two planes given a point (position) and an orientation (named orientation or 
             3D vector) + thickness (spacing between the two planes)
         """
+        if isinstance(position, (float, int)):
+            if isinstance(orientation, str):
+                pval = position
+                position = root.centerOfMass()
+                position[get_ax_idx(orientation)] = pval
+            else:
+                raise ValueError(
+                    "When a single float value is passed for position, the orientation should be one of the named orientations values"
+                )
+
         position = np.array(position)
         position[2] = -position[2]
 
         if isinstance(orientation, str):
-            # get the index of the axis
-            if orientation == "frontal":
-                axidx = 0
-            elif orientation == "sagittal":
-                axidx = 2
-            elif orientation == "top":
-                axidx = 1
-            else:
-                raise ValueError(f'Orientation "{orientation}" not recognized')
+            axidx = get_ax_idx(orientation)
 
             # get the two points the plances are cenered at
             shift = np.zeros(3)

@@ -25,13 +25,9 @@ values = dict(  # scalar values for each region
 
 f = bgh.heatmap(
     values,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),  # displacement along the AP axis relative to midpoint
-    orientation="top",  # 'frontal' or 'sagittal', or 'top' or a tuple (x,y,z)
-    title="top view",
+    position=5000,  # when using a named orientation you can pass a single value!
+    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    title="horizontal view",
     vmin=-5,
     vmax=3,
     format="2D",
