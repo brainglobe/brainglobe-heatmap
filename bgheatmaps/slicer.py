@@ -71,7 +71,7 @@ class Slicer:
         )
         self.plane1.width = length
 
-    def get_plane_coordinates(self, regions: List[Actor], root: Actor):
+    def get_structures_slice_coords(self, regions: List[Actor], root: Actor):
         """
         It computes the intersection between the first slice plane and all 
         user given brain regions,
@@ -141,7 +141,7 @@ class Slicer:
         scene.slice(self.plane0, actors=scene.root, close_actors=False)
 
 
-def get_plane_coordinates(
+def get_structures_slice_coords(
     regions: List[str],
     position: Union[list, tuple, np.ndarray],
     orientation: Union[str, tuple] = "frontal",
@@ -157,4 +157,4 @@ def get_plane_coordinates(
 
     slicer = Slicer(position, orientation, 100, scene.root)
 
-    return slicer.get_plane_coordinates(regions_actors, scene.root)[1]
+    return slicer.get_structures_slice_coords(regions_actors, scene.root)[1]

@@ -24,7 +24,7 @@ regions = [
 ]
 
 
-coordinates = bgh.get_plane_coordinates(
+coordinates = bgh.get_structures_slice_coords(
     regions,
     position=(
         8000,
