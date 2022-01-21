@@ -53,8 +53,18 @@ def get_planes(
         norm0 = orientation  # type: ignore
         norm1 = -orientation  # type: ignore
 
-    plane0 = scene.atlas.get_plane(pos=p0, norm=tuple(norm0))
-    plane1 = scene.atlas.get_plane(pos=p1, norm=tuple(norm1))
+    # get the length of the largest dimension of the atlas
+    bounds = scene.root.bounds()
+    length = max(
+        bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4],
+    )
+
+    plane0 = scene.atlas.get_plane(
+        pos=p0, norm=tuple(norm0), sx=length, sy=length
+    )
+    plane1 = scene.atlas.get_plane(
+        pos=p1, norm=tuple(norm1), sx=length, sy=length
+    )
 
     return plane0, plane1
 
@@ -100,7 +110,7 @@ def get_plane_regions_intersections(
     """
     pts = plane.points() - plane.points()[0]
     v = pts[1] / np.linalg.norm(pts[1])
-    w = -pts[2] / np.linalg.norm(pts[2])
+    w = pts[2] / np.linalg.norm(pts[2])
 
     M = np.vstack([v, w]).T  # 3 x 2
 
