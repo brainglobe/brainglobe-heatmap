@@ -1,8 +1,5 @@
 import bgheatmaps as bgh
 
-"""
-    This example shows how to use visualize a heatmap in 2D
-"""
 
 values = {
     "2Ssp": 3.5,

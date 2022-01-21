@@ -1,13 +1,5 @@
 import bgheatmaps as bgh
 
-"""
-    This example shows how to use visualize a heatmap in 2D
-"""
-
-# from brainrender import Scene
-
-# scene = Scene(atlas_name='mpin_zfish_1um')
-# print(scene.atlas.lookup_df.iloc[40:60])
 
 values = {
     "facial motor nucleus": 3.5,
@@ -22,6 +14,11 @@ values = {
     "olfactory bulb": 5,
     "medial tegmentum": -2,
     "tectal neuropil": -4,
+    "oculomotor nucleus": 1,
+    "tegmentum": -0.5,
+    "inferior olive": -0.75,
+    "inferior medulla oblongata": 1.5,
+    "cerebellum": 0.5,
 }
 
 f = bgh.heatmap(
