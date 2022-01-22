@@ -152,5 +152,7 @@ For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/int
 If you use `bgheatmap` in your work, please cite it as:
 
 ```
-Federico Claudi. (2022). brainglobe/bg-heatmaps: Initial release (V0.1). Zenodo. https://doi.org/10.5281/zenodo.5887587
+Federico Claudi, & Luigi Petrucco. (2022). brainglobe/bg-heatmaps: (V0.2). Zenodo. https://doi.org/10.5281/zenodo.5891814
 ```
+
+Bgheatmap was developed by Federico Claudi and Luigi Petrucco, with the help of Marco Musy (the developer of [`vedo`](https://github.com/marcomusy/vedo))
