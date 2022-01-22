@@ -234,11 +234,11 @@ if __name__ == "__main__":
 
     heatmap(
         values,
-        position=(8000, 5000, 5000,),
+        position=None,
         orientation=(
             1,
             1,
-            1,
+            0,
         ),  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
         thickness=250,  # thickness of the slices used for rendering (in microns)
         title="frontal",

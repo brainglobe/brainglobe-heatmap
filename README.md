@@ -7,13 +7,13 @@ Rendering heatmaps with brainrender.
 
 
 
-`Bgheatmaps` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
+`bgheatmap` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
 
 ![](images/hm_2d.png)
 ![](images/hm_3d.png)
 
 ### installation
-`pip install bgheatmaps`
+`pip install bgheatmap`
 
 
 ## User guide
@@ -31,7 +31,7 @@ For example:
     )
 ```
 
-`bgheatmaps` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
+`bgheatmap` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
 Next, to create visualizations like the ones shown above, the three dimensional sceen needs to be **sliced** to expose
 the relevant parts.
 This is done by specifying the position and orientation of a `Plane` which cuts through the scene.
@@ -50,11 +50,11 @@ To keep a section of the 3D brain, two planes with normal vectors facing in oppo
 and everything in-between the two planes is kept as a slice.
 
 ### Slicing plane position
-Finding the right position and orientation to the plane can take some tweaking. `Bgheatmaps` provides a `planner` class that makes the process easier by showing the position of the planes and how they intersect with the user provided regions (see image above).
+Finding the right position and orientation to the plane can take some tweaking. `bgheatmap` provides a `planner` class that makes the process easier by showing the position of the planes and how they intersect with the user provided regions (see image above).
 In `examples/plan.py` there's an example showing how to use the `planner`:
 
 ```python
-import bgheatmaps as bgh
+import bgheatmap as bgh
 
 
 planner = bgh.plan(
@@ -122,7 +122,7 @@ bgh.heatmap(
 Here, `format` spcifies if a 2D plot should be made (using `matplotlib`) or a 3D rendering instead (using `brainrender`). The `cmap` parameter specifies the colormap used and `vmin, vmax` the color range.
 
 ### Regions coordinates
-You can use `bgheatmaps` to get the coordinates of the 2D 'slices' (in the 2D plane's coordinates system):
+You can use `bgheatmap` to get the coordinates of the 2D 'slices' (in the 2D plane's coordinates system):
 
 
 ```python
@@ -141,15 +141,15 @@ coordinates = bgh.get_plane_coordinates(
 )
 ```
 
-## Using `bgheatmaps` with other atlases.
+## Using `bgheatmap` with other atlases.
 
-`Bgheatmaps` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmaps`'s functionality is compatible with any of the atlases supported by the atlas API. 
+`bgheatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmap`'s functionality is compatible with any of the atlases supported by the atlas API. 
 `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
 For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/introduction](documentation).
 
 
-# Citing bgheatmaps
-If you use `bgheatmaps` in your work, please cite it as:
+# Citing bgheatmap
+If you use `bgheatmap` in your work, please cite it as:
 
 ```
 Federico Claudi. (2022). brainglobe/bg-heatmaps: Initial release (V0.1). Zenodo. https://doi.org/10.5281/zenodo.5887587
