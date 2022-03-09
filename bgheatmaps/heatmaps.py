@@ -50,9 +50,6 @@ class heatmap:
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
         format: str = "3D",  # 3D -> brainrender, 2D -> matplotlib
-        # add 2D specifics
-        filename = None,
-        remove_all_axes = False,
         # brainrender, 3D HM specific
         thickness: float = 10,
         interactive: bool = True,
@@ -166,6 +163,9 @@ class heatmap:
         show_legend: bool = False,
         xlabel: str = "μm",
         ylabel: str = "μm",
+        nude_plot: bool = False,
+        filename: str = None,
+        cbar_label: str = None,
         **kwargs,
     ) -> plt.Figure:
         """
@@ -196,7 +196,10 @@ class heatmap:
 
         # cmap = mpl.cm.cool
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-        f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+        cbar = f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+
+        if cbar_label is not None:
+            cbar.set_label(cbar_label)
 
         # style axes
         ax.invert_yaxis()
@@ -204,17 +207,20 @@ class heatmap:
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
 
-        if remove_all_axes:
-            ax.spines["left"].set_visible(False)
-            ax.spines['bottom'].set_visible(False)
-
         ax.set(title=self.title)
 
         if isinstance(self.orientation, str) or np.sum(self.orientation) == 1:
             # orthogonal projection
             ax.set(xlabel=xlabel, ylabel=ylabel)
 
-        if filename not None:
+        if nude_plot:
+            ax.spines["left"].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set(xlabel='', ylabel='')
+
+        if filename is not None:
             plt.savefig(filename, dpi=300)
 
         if show_legend:
