@@ -163,6 +163,9 @@ class heatmap:
         show_legend: bool = False,
         xlabel: str = "μm",
         ylabel: str = "μm",
+        hide_axes: bool = False,
+        filename: str = None,
+        cbar_label: str = None,
         **kwargs,
     ) -> plt.Figure:
         """
@@ -193,18 +196,32 @@ class heatmap:
 
         # cmap = mpl.cm.cool
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-        f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+        cbar = f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+
+        if cbar_label is not None:
+            cbar.set_label(cbar_label)
 
         # style axes
         ax.invert_yaxis()
         ax.axis("equal")
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
+
         ax.set(title=self.title)
 
         if isinstance(self.orientation, str) or np.sum(self.orientation) == 1:
             # orthogonal projection
             ax.set(xlabel=xlabel, ylabel=ylabel)
+
+        if hide_axes:
+            ax.spines["left"].set_visible(False)
+            ax.spines['bottom'].set_visible(False)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            ax.set(xlabel='', ylabel='')
+
+        if filename is not None:
+            plt.savefig(filename, dpi=300)
 
         if show_legend:
             ax.legend()
