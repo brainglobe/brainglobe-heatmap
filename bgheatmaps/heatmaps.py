@@ -163,7 +163,7 @@ class heatmap:
         show_legend: bool = False,
         xlabel: str = "μm",
         ylabel: str = "μm",
-        nude_plot: bool = False,
+        hide_axes: bool = False,
         filename: str = None,
         cbar_label: str = None,
         **kwargs,
@@ -213,7 +213,7 @@ class heatmap:
             # orthogonal projection
             ax.set(xlabel=xlabel, ylabel=ylabel)
 
-        if nude_plot:
+        if hide_axes:
             ax.spines["left"].set_visible(False)
             ax.spines['bottom'].set_visible(False)
             ax.set_xticks([])
