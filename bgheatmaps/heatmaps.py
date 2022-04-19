@@ -19,6 +19,11 @@ settings.SHADER_STYLE = "cartoon"
 settings.ROOT_ALPHA = 0.3
 settings.ROOT_COLOR = grey_darker
 
+# Set settings for transparent background
+
+#settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
+#settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
+
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     """
