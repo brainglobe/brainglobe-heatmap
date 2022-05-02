@@ -19,6 +19,11 @@ settings.SHADER_STYLE = "cartoon"
 settings.ROOT_ALPHA = 0.3
 settings.ROOT_COLOR = grey_darker
 
+# Set settings for transparent background
+
+#settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
+#settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
+
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     """
@@ -55,6 +60,7 @@ class heatmap:
         interactive: bool = True,
         zoom: Optional[float] = None,
         atlas_name: Optional[str] = None,
+        label_regions: Optional[bool] = False,
         **kwargs,
     ):
         # store arguments
@@ -65,6 +71,7 @@ class heatmap:
         self.zoom = zoom
         self.title = title
         self.cmap = cmap
+        self.label_regions = label_regions
 
         # create a scene
         self.scene = Scene(
@@ -196,10 +203,16 @@ class heatmap:
 
         # cmap = mpl.cm.cool
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-        cbar = f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+        if self.label_regions is True:
+            cbar = f.colorbar(mpl.cm.ScalarMappable(norm=None, cmap=mpl.cm.get_cmap(self.cmap, len(self.values))), cax=cax)
+        else:
+            cbar = f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
 
         if cbar_label is not None:
             cbar.set_label(cbar_label)
+
+        if self.label_regions is True:
+            cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
 
         # style axes
         ax.invert_yaxis()
