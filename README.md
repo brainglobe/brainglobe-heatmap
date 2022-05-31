@@ -147,6 +147,8 @@ coordinates = bgh.get_plane_coordinates(
 `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
 For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/introduction](documentation).
 
+## Contributing
+Contributions to bg-heatmaps are more than welcome. Please see the [contributing guide](https://github.com/brainglobe/.github/blob/main/CONTRIBUTING.md).
 
 # Citing bgheatmap
 If you use `bgheatmap` in your work, please cite it as:
