@@ -8,8 +8,8 @@ from brainrender.scene import Scene
 
 def get_ax_idx(orientation: str) -> int:
     """
-        Given a named orientation get the idx
-        of the axis orthogonal to the plane,
+    Given a named orientation get the idx
+    of the axis orthogonal to the plane,
     """
     if orientation == "frontal":
         return 0
@@ -30,8 +30,8 @@ class Slicer:
         root: Actor,
     ):
         """
-            Computes the position of two planes given a point (position) and an orientation (named orientation or 
-            3D vector) + thickness (spacing between the two planes)
+        Computes the position of two planes given a point (position) and an orientation (named orientation or
+        3D vector) + thickness (spacing between the two planes)
         """
         if position is None:
             position = root.centerOfMass()
@@ -94,7 +94,7 @@ class Slicer:
 
     def get_structures_slice_coords(self, regions: List[Actor], root: Actor):
         """
-        It computes the intersection between the first slice plane and all 
+        It computes the intersection between the first slice plane and all
         user given brain regions,
         returning the coordinates of each region as a set of XY (i.e. in the plane's
         coordinates system) coordinates
@@ -119,7 +119,6 @@ class Slicer:
 
             pieces = intersection.splitByConnectivity()
             for piece_n, piece in enumerate(pieces):
-
                 # sort coordinates
                 points = piece.join(reset=True).points()
 
@@ -139,8 +138,8 @@ class Slicer:
         self, scene: Scene, regions: List[Actor], root: Actor
     ):
         """
-            Slices regions' meshjes with plane0 and adds the resulting intersection
-            to the brainrender scene.
+        Slices regions' meshjes with plane0 and adds the resulting intersection
+        to the brainrender scene.
         """
         for region in regions + [root]:
             intersection = self.plane0.intersectWith(region._mesh)
@@ -153,7 +152,7 @@ class Slicer:
 
     def slice_scene(self, scene: Scene, regions: List[Actor]):
         """
-            Slices the meshes in a 3D brainrender scene using the gien planes
+        Slices the meshes in a 3D brainrender scene using the gien planes
         """
         # slice the scene
         for n, plane in enumerate((self.plane0, self.plane1)):
@@ -169,8 +168,8 @@ def get_structures_slice_coords(
     atlas_name: Optional[str] = None,
 ) -> Dict[str, List[np.ndarray]]:
     """
-        Given a list of regions name and a set of plane parameters, it returns 
-        the coordinates of the plane/regions' intersection in the plane's coordinates
+    Given a list of regions name and a set of plane parameters, it returns
+    the coordinates of the plane/regions' intersection in the plane's coordinates
     """
 
     scene = Scene(atlas_name=atlas_name)

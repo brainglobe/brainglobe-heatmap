@@ -17,7 +17,7 @@ settings.ROOT_COLOR = grey
 
 def print_plane(name: str, plane: Plane, color: str):
     """
-        Prints nicely formatted information about a plane
+    Prints nicely formatted information about a plane
     """
 
     def fmt_array(x: np.ndarray) -> str:
@@ -76,7 +76,7 @@ class plan(heatmap):
 
     def show(self):
         """
-            Renders the hetamap visualization as a 3D scene in brainrender.
+        Renders the hetamap visualization as a 3D scene in brainrender.
         """
         self.scene.root._mesh.alpha(0.3)
 
