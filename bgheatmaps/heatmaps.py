@@ -21,8 +21,8 @@ settings.ROOT_COLOR = grey_darker
 
 # Set settings for transparent background
 
-#settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
-#settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
+# settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
+# settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
 
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
@@ -120,7 +120,7 @@ class heatmap:
 
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
-            Creates a 2D plot or 3D rendering of the heatmap
+        Creates a 2D plot or 3D rendering of the heatmap
         """
         if self.format == "3D":
             self.slicer.slice_scene(self.scene, self.regions_meshes)
@@ -131,7 +131,7 @@ class heatmap:
 
     def render(self, **kwargs) -> Scene:
         """
-            Renders the hetamap visualization as a 3D scene in brainrender.
+        Renders the hetamap visualization as a 3D scene in brainrender.
         """
 
         # set brain regions colors
@@ -176,7 +176,7 @@ class heatmap:
         **kwargs,
     ) -> plt.Figure:
         """
-            Plots the heatmap in 2D using matplotlib
+        Plots the heatmap in 2D using matplotlib
         """
         self.scene.close()
         projected, _ = self.slicer.get_structures_slice_coords(
@@ -204,9 +204,17 @@ class heatmap:
         # cmap = mpl.cm.cool
         norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
         if self.label_regions is True:
-            cbar = f.colorbar(mpl.cm.ScalarMappable(norm=None, cmap=mpl.cm.get_cmap(self.cmap, len(self.values))), cax=cax)
+            cbar = f.colorbar(
+                mpl.cm.ScalarMappable(
+                    norm=None,
+                    cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
+                ),
+                cax=cax,
+            )
         else:
-            cbar = f.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+            cbar = f.colorbar(
+                mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+            )
 
         if cbar_label is not None:
             cbar.set_label(cbar_label)
@@ -228,10 +236,10 @@ class heatmap:
 
         if hide_axes:
             ax.spines["left"].set_visible(False)
-            ax.spines['bottom'].set_visible(False)
+            ax.spines["bottom"].set_visible(False)
             ax.set_xticks([])
             ax.set_yticks([])
-            ax.set(xlabel='', ylabel='')
+            ax.set(xlabel="", ylabel="")
 
         if filename is not None:
             plt.savefig(filename, dpi=300)

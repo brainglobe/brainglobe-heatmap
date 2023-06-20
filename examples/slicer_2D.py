@@ -46,7 +46,12 @@ for struct_name, contours in coords_dict.items():
             fontsize=12,
         )
         txt.set_path_effects(
-            [path_effects.withStroke(linewidth=6, foreground="white",)]
+            [
+                path_effects.withStroke(
+                    linewidth=6,
+                    foreground="white",
+                )
+            ]
         )
 
 
