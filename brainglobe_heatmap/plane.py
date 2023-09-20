@@ -4,43 +4,8 @@ import numpy as np
 import vedo as vd
 import vtkmodules.all as vtk
 from brainrender.actor import Actor
-from vtkmodules.vtkFiltersCore import vtkPolyDataPlaneCutter
 
-np.float = float  # for compatibility with old vedo
-vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
-
-
-# from vedo 2023.4.6
-def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
-    """
-    Intersect this Mesh with a plane to return a set of lines.
-
-    Example:
-        ```python
-        from vedo import *
-        sph = Sphere()
-        mi = sph.clone().intersect_with_plane().join()
-        print(mi.lines())
-        show(sph, mi, axes=1).close()
-        ```
-        ![](https://vedo.embl.es/images/feats/intersect_plane.png)
-    """
-    plane = vtk.vtkPlane()
-    plane.SetOrigin(origin)
-    plane.SetNormal(normal)
-
-    cutter = vtkPolyDataPlaneCutter()
-    cutter.SetInputData(mesh.dataset)
-    cutter.SetPlane(plane)
-    cutter.InterpolateAttributesOn()
-    cutter.ComputeNormalsOff()
-    cutter.Update()
-
-    msh = vd.Mesh(cutter.GetOutput(), "k", 1).lighting("off")
-    msh.properties.SetLineWidth(3)
-    msh.name = "PlaneIntersection"
-    return msh
-
+vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF) # remove logger's prints during intersect_with_plane()
 
 class Plane:
     def __init__(
@@ -57,7 +22,7 @@ class Plane:
         self.M = np.vstack([u, v]).T
 
     @staticmethod
-    def from_norm(origin: np.ndarray, norm: np.ndarray) -> vd.Plane:
+    def from_norm(origin: np.ndarray, norm: np.ndarray):
         u = np.zeros(3)
         m = np.where(norm != 0)[0][0]  # orientation can't be all-zeros
         n = (m + 1) % 3
@@ -95,10 +60,8 @@ class Plane:
         return (ps - self.center) @ self.M
 
     def intersectWith(self, mesh: vd.Mesh):
-        # mesh.intersect_with_plane(
-        # origin=self.center, normal=self.normal) in newer vedo
-        return intersect_with_plane(
-            mesh, origin=self.center, normal=self.normal
+        return mesh.intersect_with_plane(
+            origin=self.center, normal=self.normal
         )
 
     # for Slicer.get_structures_slice_coords()
