@@ -40,7 +40,10 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
         if k not in atlas.lookup_df.acronym.values:
             raise ValueError(f'Region name "{k}" not recognized')
 
-    vmax, vmin = max(values.values()), min(values.values())
+    not_nan = [v for v in values.values() if not np.isnan(v)]
+    if len(not_nan) == 0:
+        return np.nan, np.nan
+    vmax, vmin = max(not_nan), min(not_nan)
     return vmax, vmin
 
 
@@ -108,8 +111,8 @@ class heatmap:
         if _vmax == _vmin:
             _vmin = _vmax * 0.5
 
-        vmin = vmin or _vmin
-        vmax = vmax or _vmax
+        vmin = vmin if vmin == 0 or vmin else _vmin
+        vmax = vmax if vmax == 0 or vmax else _vmax
         self.vmin, self.vmax = vmin, vmax
 
         self.colors = {
