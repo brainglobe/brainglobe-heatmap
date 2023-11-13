@@ -1,17 +1,17 @@
 repos:
 -   repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.11.0
     hooks:
     - id: black
       pass_filenames: true
 -   repo: https://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
     - id: flake8
       pass_filenames: true
       # this seems to need to be here in addition to setup.cfg
       exclude: __init__.py, workspace.py
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.3.0
+    rev: v1.7.0
     hooks:
     -   id: mypy
