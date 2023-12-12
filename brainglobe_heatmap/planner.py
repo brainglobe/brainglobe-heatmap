@@ -14,7 +14,7 @@ from myterial import (
 from rich import print
 from rich.panel import Panel
 from rich.table import Table
-from vedo import Arrow, Plane, Sphere
+from vedo import Arrow, Sphere
 
 from brainglobe_heatmap.heatmaps import heatmap
 from brainglobe_heatmap.plane import Plane
@@ -139,12 +139,15 @@ if __name__ == "__main__":
 
     plan(
         regions,
+        # position of the center point of the plane
         position=(
             8000,
             5000,
             5000,
-        ),  # position of the center point of the plane
-        orientation="frontal",  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-        thickness=2000,  # thickness of the slices used for rendering (in microns)
+        ),
+        # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+        orientation="frontal",
+        # thickness of the slices used for rendering (in microns)
+        thickness=2000,
         arrow_scale=750,
     ).show()

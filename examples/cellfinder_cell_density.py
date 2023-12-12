@@ -1,13 +1,14 @@
+"""
+    This example shows how to go from cell counts per region
+    (e.g. as outputted by cellfinder) to a plot showing the
+    density (count/volume) of cells in each brain region
+"""
+
 import pandas as pd
 from bg_atlasapi.bg_atlas import BrainGlobeAtlas
 from brainrender._io import load_mesh_from_file
 
 import brainglobe_heatmap as bgh
-
-"""
-    This exmaple shows how to go from cell counts per region (e.g. as outputted by
-    cellfinder) to a plot showing the density (count/volume) of cells in each brain region
-"""
 
 # get the number of cells for each region
 data = pd.read_hdf("examples/cell_counts_example.h5")

@@ -23,7 +23,8 @@ values = {
 f = bgh.heatmap(
     values,
     position=175,
-    orientation="horizontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="horizontal",
     thickness=250,
     atlas_name="mpin_zfish_1um",
     format="2D",

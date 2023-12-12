@@ -1,9 +1,8 @@
-import brainglobe_heatmap as bgh
-
 """
     This example shows how to get the coordinates
     of selected brain regions in the slicing plane
 """
+import brainglobe_heatmap as bgh
 
 regions = [
     "TH",
@@ -31,7 +30,8 @@ coordinates = bgh.get_structures_slice_coords(
         5000,
         5000,
     ),
-    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="frontal",
 )
 
 print(coordinates)

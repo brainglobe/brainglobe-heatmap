@@ -18,9 +18,11 @@ settings.ROOT_ALPHA = 0.3
 settings.ROOT_COLOR = grey_darker
 
 # Set settings for transparent background
+# vedo for transparent bg
+# settings.vsettings.screenshotTransparentBackground = True
 
-# settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
-# settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
+# This needs to be false for transparent bg
+# settings.vsettings.useFXAA = False
 
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
@@ -32,7 +34,8 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     for k, v in values.items():
         if not isinstance(v, (float, int)):
             raise ValueError(
-                f'Heatmap values should be floats, not: {type(v)} for entry "{k}"'
+                f"Heatmap values should be floats, "
+                f'not: {type(v)} for entry "{k}"'
             )
 
         if k not in atlas.lookup_df.acronym.values:
@@ -270,12 +273,14 @@ if __name__ == "__main__":
     heatmap(
         values,
         position=None,
+        # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
         orientation=(
             1,
             1,
             0,
-        ),  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-        thickness=250,  # thickness of the slices used for rendering (in microns)
+        ),
+        # thickness of the slices used for rendering (in microns)
+        thickness=250,
         title="frontal",
         vmin=-5,
         vmax=3,

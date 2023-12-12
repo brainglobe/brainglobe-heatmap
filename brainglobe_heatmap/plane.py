@@ -1,15 +1,13 @@
 from typing import Dict, List
 
 import numpy as np
-from brainrender.actor import Actor
-
-np.float = float  # for compatibility with old vedo
 import vedo as vd
 import vtkmodules.all as vtk
-
-vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
-
+from brainrender.actor import Actor
 from vtkmodules.vtkFiltersCore import vtkPolyDataPlaneCutter
+
+np.float = float  # for compatibility with old vedo
+vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
 
 
 # from vedo 2023.4.6
@@ -51,9 +49,10 @@ class Plane:
         self.center = origin
         self.u = u / np.linalg.norm(u)
         self.v = v / np.linalg.norm(v)
-        assert np.isclose(
-            np.dot(self.u, self.v), 0
-        ), f"The plane vectors must be orthonormal to each other (u ⋅ v = {np.dot(self.u, self.v)})"
+        assert np.isclose(np.dot(self.u, self.v), 0), (
+            f"The plane vectors must be orthonormal to each "
+            f"other (u ⋅ v = {np.dot(self.u, self.v)})"
+        )
         self.normal = np.cross(self.u, self.v)
         self.M = np.vstack([u, v]).T
 
@@ -91,11 +90,13 @@ class Plane:
 
     def P3toP2(self, ps):
         # ps is a list of 3D points
-        # returns a list of 2D point mapped on the plane (u -> x axis, v -> y axis)
+        # returns a list of 2D point mapped on
+        # the plane (u -> x axis, v -> y axis)
         return (ps - self.center) @ self.M
 
     def intersectWith(self, mesh: vd.Mesh):
-        # mesh.intersect_with_plane(origin=self.center, normal=self.normal) in newer vedo
+        # mesh.intersect_with_plane(
+        # origin=self.center, normal=self.normal) in newer vedo
         return intersect_with_plane(
             mesh, origin=self.center, normal=self.normal
         )

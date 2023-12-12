@@ -31,7 +31,8 @@ class Slicer:
         root: Actor,
     ):
         """
-        Computes the position of two planes given a point (position) and an orientation (named orientation or
+        Computes the position of two planes given a point (position) and an
+        orientation (named orientation or
         3D vector) + thickness (spacing between the two planes)
         """
         if position is None:
@@ -44,7 +45,8 @@ class Slicer:
                 position[get_ax_idx(orientation)] = pval
             else:
                 raise ValueError(
-                    "When a single float value is passed for position, the orientation "
+                    "When a single float value is passed for "
+                    "position, the orientation "
                     "should be one of the named orientations values"
                 )
 
@@ -67,11 +69,8 @@ class Slicer:
                 u0, v0 = np.array([[1, 0, 0], [0, 1, 0]])
             else:  # orientation == "horizontal"
                 u0, v0 = np.array([[0, 0, -1], [-1, 0, 0]])
-            # u0, v0 = np.delete(np.array([[-1,0,0], [0,1,0], [0,0,-1]]), axidx, 0) # can't use this formula for backward compatibility
             plane0 = Plane(position, u0, v0)
             u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
-            # we could, alternatively set u1:=v0 and v1:=u0
-            # u1, v1 = v0.copy(), u0.copy()
             plane1 = Plane(p1, u1, v1)
         else:
             orientation = np.array(orientation)
@@ -98,7 +97,8 @@ class Slicer:
         """
         It computes the intersection between the first slice plane and all
         user given brain regions,
-        returning the coordinates of each region as a set of XY (i.e. in the plane's
+        returning the coordinates of each region as a
+        set of XY (i.e., in the plane's
         coordinates system) coordinates
         """
         regions = regions + [root]
@@ -149,8 +149,9 @@ def get_structures_slice_coords(
     atlas_name: Optional[str] = None,
 ) -> Dict[str, List[np.ndarray]]:
     """
-    Given a list of regions name and a set of plane parameters, it returns
-    the coordinates of the plane/regions' intersection in the plane's coordinates
+    Given a list of region name and a set of plane parameters,
+    it returns the coordinates of the plane/regions'
+    intersection in the plane's coordinates
     """
 
     scene = Scene(atlas_name=atlas_name)
