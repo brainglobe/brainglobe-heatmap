@@ -125,7 +125,7 @@ class Slicer:
         for region in regions + [root]:
             intersection = self.plane0.intersectWith(region._mesh)
 
-            if len(intersection.points()):
+            if len(intersection.vertices):
                 scene.add(intersection, transform=False)
 
             if region.name != "root":
@@ -164,5 +164,4 @@ def get_structures_slice_coords(
     structures_coords = slicer.get_structures_slice_coords(
         regions_actors, scene.root
     )[1]
-    scene.close()
     return structures_coords

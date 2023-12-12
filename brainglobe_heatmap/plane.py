@@ -6,14 +6,12 @@ from brainrender.actor import Actor
 np.float = float  # for compatibility with old vedo
 import vedo as vd
 
-try:
-    import vedo.vtkclasses as vtk
-except ImportError:
-    import vtkmodules.all as vtk
 
-# vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
+import vtkmodules.all as vtk
 
+vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
 
+from vtkmodules.vtkFiltersCore import vtkPolyDataPlaneCutter
 # from vedo 2023.4.6
 def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
@@ -33,15 +31,15 @@ def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
     plane.SetOrigin(origin)
     plane.SetNormal(normal)
 
-    cutter = vtk.vtkPolyDataPlaneCutter()
-    cutter.SetInputData(mesh.polydata())
+    cutter = vtkPolyDataPlaneCutter()
+    cutter.SetInputData(mesh.dataset)
     cutter.SetPlane(plane)
     cutter.InterpolateAttributesOn()
     cutter.ComputeNormalsOff()
     cutter.Update()
 
     msh = vd.Mesh(cutter.GetOutput(), "k", 1).lighting("off")
-    msh.GetProperty().SetLineWidth(3)
+    msh.properties.SetLineWidth(3)
     msh.name = "PlaneIntersection"
     return msh
 
@@ -82,7 +80,7 @@ class Plane:
 
         plane_mesh = Actor(
             vd.Plane(
-                pos=self.center, normal=self.normal, sx=length, sy=length
+                pos=self.center, normal=self.normal, s=(length, length)
             ),
             name=f"PlaneMesh at {self.center} norm: {self.normal}",
             br_class="plane_mesh",
@@ -110,14 +108,14 @@ class Plane:
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
             intersection = self.intersectWith(mesh)
-            if not intersection.points().shape[0]:
+            if not intersection.vertices.shape[0]:
                 continue
             pieces = (
-                intersection.splitByConnectivity()
+                intersection.split()
             )  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
-                points = piece.join(reset=True).points()
+                points = piece.join(reset=True).vertices
                 projected[actor.name + f"_segment_{piece_n}"] = self.P3toP2(
                     points
                 )

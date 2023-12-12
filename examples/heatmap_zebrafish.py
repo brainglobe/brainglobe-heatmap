@@ -26,6 +26,6 @@ f = bgh.heatmap(
     orientation="horizontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=250,
     atlas_name="mpin_zfish_1um",
-    format="3D",
+    format="2D",
     title="zebra fish heatmap",
 ).show(xlabel="AP (μm)", ylabel="DV (μm)")
