@@ -1,8 +1,9 @@
-from typing import List, Dict, Union, Optional
+from typing import Dict, List, Optional, Union
+
 import numpy as np
 from brainrender.actor import Actor
 from brainrender.scene import Scene
-from bgheatmaps.plane import Plane
+from vedo import Plane
 
 
 def get_ax_idx(orientation: str) -> int:
@@ -58,39 +59,39 @@ class Slicer:
             p1 = position - shift
 
             # get the two planes
-            # assures that u0×v0 is all-positive -> it's for plane0
-            if orientation == "frontal":
-                u0, v0 = np.array([[0,0,-1], [0,1,0]])
-            elif orientation == "sagittal":
-                u0, v0 = np.array([[1,0,0], [0,1,0]])
-            else: # orientation == "horizontal"
-                u0, v0 = np.array([[0,0,-1], [-1,0,0]])
-            # u0, v0 = np.delete(np.array([[-1,0,0], [0,1,0], [0,0,-1]]), axidx, 0) # can't use this formula for backward compatibility
-            plane0 = Plane(position, u0, v0)
-            u1, v1 = u0.copy(), -v0.copy() # set u1:=u0 and v1:=-v0
-            # we could, alternatively set u1:=v0 and v1:=u0
-            # u1, v1 = v0.copy(), u0.copy()
-            plane1 = Plane(p1, u1, v1)
+            norm0, norm1 = np.zeros(3), np.zeros(3)
+            norm0[axidx] = 1
+            norm1[axidx] = -1
         else:
             orientation = np.array(orientation)
 
             p1 = position + orientation * thickness  # type: ignore
 
             norm0 = orientation  # type: ignore
-            plane0 = Plane.from_norm(position, norm0)
             norm1 = -orientation  # type: ignore
-            plane1 = Plane.from_norm(p1, norm1)
+
+        # get the length of the largest dimension of the atlas
+        bounds = root.bounds()
+        length = max(
+            bounds[1] - bounds[0],
+            bounds[3] - bounds[2],
+            bounds[5] - bounds[4],
+        )
+        length += length / 3
 
         self.plane0 = Actor(
-            plane0,
-            name=f"Plane at {plane0.center} norm: {plane0.normal}",
+            Plane(pos=position, normal=norm0, s=(length, length)),
+            name=f"Plane at {position} norm: {norm0}",
             br_class="plane",
         )
+        self.plane0.width = length
+
         self.plane1 = Actor(
-            plane1,
-            name=f"Plane at {plane1.center} norm: {plane1.normal}",
+            Plane(pos=p1, normal=norm1, s=(length, length)),
+            name=f"Plane at {p1} norm: {norm1}",
             br_class="plane",
         )
+        self.plane1.width = length
 
     def get_structures_slice_coords(self, regions: List[Actor], root: Actor):
         """
@@ -101,7 +102,28 @@ class Slicer:
         """
         regions = regions + [root]
 
-        projected: Dict[str, np.ndarray] = self.plane0.get_projections(regions)
+        pts = self.plane0.points() - self.plane0.points()[0]
+        v = pts[1] / np.linalg.norm(pts[1])
+        w = pts[2] / np.linalg.norm(pts[2])
+
+        M = np.vstack([v, w]).T  # 3 x 2
+
+        projected: Dict[str, np.ndarray] = {}
+        for n, actor in enumerate(regions):
+            # get region/plane intersection
+            intersection = self.plane0.intersect_with(
+                actor._mesh.triangulate()
+            )  # points: (N x 3)
+
+            if not intersection.points().shape[0]:
+                continue  # no intersection
+
+            pieces = intersection.split()
+            for piece_n, piece in enumerate(pieces):
+                # sort coordinates
+                points = piece.join(reset=True).points()
+
+                projected[actor.name + f"_segment_{piece_n}"] = points @ M
 
         # get output coordinates
         coordinates: Dict[str, List[np.ndarray]] = dict()
@@ -117,7 +139,7 @@ class Slicer:
         self, scene: Scene, regions: List[Actor], root: Actor
     ):
         """
-        Slices regions' meshes with plane0 and adds the resulting intersection
+        Slices regions' meshjes with plane0 and adds the resulting intersection
         to the brainrender scene.
         """
         for region in regions + [root]:
