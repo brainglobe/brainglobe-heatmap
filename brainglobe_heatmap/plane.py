@@ -1,17 +1,18 @@
 from typing import Dict, List
-from typing_extensions import Self
+
 import numpy as np
 from brainrender.actor import Actor
+from typing_extensions import Self
 
 np.float = float  # for compatibility with old vedo
 import vedo as vd
-
-
 import vtkmodules.all as vtk
 
 vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
 
 from vtkmodules.vtkFiltersCore import vtkPolyDataPlaneCutter
+
+
 # from vedo 2023.4.6
 def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
     """
@@ -79,9 +80,7 @@ class Plane:
         length += length / 3
 
         plane_mesh = Actor(
-            vd.Plane(
-                pos=self.center, normal=self.normal, s=(length, length)
-            ),
+            vd.Plane(pos=self.center, normal=self.normal, s=(length, length)),
             name=f"PlaneMesh at {self.center} norm: {self.normal}",
             br_class="plane_mesh",
         )
@@ -110,9 +109,7 @@ class Plane:
             intersection = self.intersectWith(mesh)
             if not intersection.vertices.shape[0]:
                 continue
-            pieces = (
-                intersection.split()
-            )  # intersection.split() in newer vedo
+            pieces = intersection.split()  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
                 points = piece.join(reset=True).vertices
