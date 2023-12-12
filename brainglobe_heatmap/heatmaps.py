@@ -169,8 +169,8 @@ class heatmap:
         xlabel: str = "μm",
         ylabel: str = "μm",
         hide_axes: bool = False,
-        filename: str = None,
-        cbar_label: str = None,
+        filename: Optional[str] = None,
+        cbar_label: Optional[str] = None,
         **kwargs,
     ) -> plt.Figure:
         """

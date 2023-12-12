@@ -2,7 +2,6 @@ from typing import Dict, List
 
 import numpy as np
 from brainrender.actor import Actor
-from typing_extensions import Self
 
 np.float = float  # for compatibility with old vedo
 import vedo as vd
@@ -59,7 +58,7 @@ class Plane:
         self.M = np.vstack([u, v]).T
 
     @staticmethod
-    def from_norm(origin: np.ndarray, norm: np.ndarray) -> Self:
+    def from_norm(origin: np.ndarray, norm: np.ndarray) -> vd.Plane:
         u = np.zeros(3)
         m = np.where(norm != 0)[0][0]  # orientation can't be all-zeros
         n = (m + 1) % 3
