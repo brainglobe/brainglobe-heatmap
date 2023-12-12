@@ -1,7 +1,7 @@
-import bgheatmaps as bgh
+import brainglobe_heatmap as bgh
 
 """
-    This example shows how to get the coordinates 
+    This example shows how to get the coordinates
     of selected brain regions in the slicing plane
 """
 

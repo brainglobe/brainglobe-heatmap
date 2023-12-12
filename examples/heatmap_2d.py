@@ -1,4 +1,4 @@
-import bgheatmaps as bgh
+import brainglobe_heatmap as bgh
 
 """
     This example shows how to use visualize a heatmap in 2D

@@ -1,17 +1,15 @@
-from vedo.colors import colorMap as map_color
-from typing import Optional, Union, Dict, Tuple
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from typing import Dict, Optional, Tuple, Union
+
 import matplotlib as mpl
-
-from myterial import grey_darker
-
-from brainrender import Scene
-from brainrender import settings, cameras
+import matplotlib.pyplot as plt
+import numpy as np
+from brainrender import Scene, cameras, settings
 from brainrender.atlas import Atlas
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from myterial import grey_darker
+from vedo.colors import color_map as map_color
 
-from bgheatmaps.slicer import Slicer
+from brainglobe_heatmap.slicer import Slicer
 
 # Set settings for heatmap visualization
 settings.SHOW_AXES = False

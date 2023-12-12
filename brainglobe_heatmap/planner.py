@@ -1,15 +1,14 @@
 from typing import Union
+
 import numpy as np
-from vedo import Arrow, Plane, Sphere
-from rich.table import Table
-from rich.panel import Panel
-from rich import print
-
-from myterial import pink_dark, blue_dark, amber_lighter, grey, amber, orange
-
-from bgheatmaps.heatmaps import heatmap
-
 from brainrender import settings
+from myterial import amber, amber_lighter, blue_dark, grey, orange, pink_dark
+from rich import print
+from rich.panel import Panel
+from rich.table import Table
+from vedo import Arrow, Plane, Sphere
+
+from brainglobe_heatmap.heatmaps import heatmap
 
 settings.BACKGROUND_COLOR = amber_lighter
 settings.ROOT_COLOR = grey

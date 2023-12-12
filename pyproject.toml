@@ -1,20 +1,102 @@
+[project]
+name = "brainglobe-heatmap"
+authors = [{name = "Federico Claudi", email= "hello@brainglobe.info"}]
+description = "Rendering heatmaps with brainrender"
+readme = "README.md"
+requires-python = ">=3.9.0"
+dynamic = ["version"]
+
+dependencies = ["brainrender", "matplotlib", "numpy", "myterial", "rich"]
+
+license = {text = "MIT"}
+
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/brainglobe/brainglobe-heatmap"
+"Bug Tracker" = "https://github.com/brainglobe/brainglobe-heatmap/issues"
+"Documentation" = "https://github.com/brainglobe/brainglobe-heatmap"
+"Source Code" = "https://github.com/brainglobe/brainglobe-heatmap"
+"User Support" = "https://github.com/brainglobe/brainglobe-heatmap/issues"
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-cov",
+  "coverage",
+  "tox",
+  "black",
+  "mypy",
+  "pre-commit",
+  "ruff",
+  "setuptools_scm",
+]
+
+
+[build-system]
+requires = [
+    "setuptools>=45",
+    "wheel",
+    "setuptools_scm[toml]>=6.2",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["brainglobe_heatmap*"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=brainglobe_heatmap"
+
 [tool.black]
-target-version = ['py36', 'py37', 'py38']
+target-version = ['py39', 'py310', 'py311']
 skip-string-normalization = false
 line-length = 79
-exclude = '''
-(
-  /(
-      \.eggs
-    | \.git
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )/
-)
-'''
+
+[tool.setuptools_scm]
+
+[tool.check-manifest]
+ignore = [
+  ".yaml",
+  "tox.ini",
+  "tests/",
+  "tests/test_unit/",
+  "tests/test_integration/",
+]
+
+[tool.ruff]
+line-length = 79
+exclude = ["__init__.py","build",".eggs"]
+select = ["I", "E", "F"]
+fix = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{39,310,311}
+isolated_build = True
+
+[gh-actions]
+python =
+    3.9: py39
+    3.10: py310
+    3.11: py311
+
+[testenv]
+extras =
+    dev
+commands =
+    pytest -v --color=yes --cov=brainglobe_heatmap --cov-report=xml
+"""

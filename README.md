@@ -20,7 +20,7 @@ Rendering heatmaps with brainrender.
 The starting point for a heatmap visualization is a `dict` assigning scalar values to a set of brain regions (identified by their acronym).
 For example:
 
-```python 
+```python
     regions = dict(  # scalar values for each region
         TH=1,
         RSP=0.2,
@@ -63,7 +63,7 @@ planner = bgh.plan(
         8000,
         5000,
         5000,
-    ),  
+    ),
     orientation="frontal",  # orientation, or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=2000,  # thickness of the slices used for rendering (in microns)
 )
@@ -109,7 +109,7 @@ bgh.heatmap(
         8000,
         5000,
         5000,
-    ),  
+    ),
     orientation="horizontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     title="horizontal view",
     vmin=-5,
@@ -136,14 +136,14 @@ coordinates = bgh.get_plane_coordinates(
         8000,
         5000,
         5000,
-    ),  
+    ),
     orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
 )
 ```
 
 ## Using `bgheatmap` with other atlases.
 
-`bgheatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmap`'s functionality is compatible with any of the atlases supported by the atlas API. 
+`bgheatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmap`'s functionality is compatible with any of the atlases supported by the atlas API.
 `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
 For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/introduction](documentation).
 

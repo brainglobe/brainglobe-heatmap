@@ -1,9 +1,9 @@
-from typing import List, Dict, Union, Optional
-from vedo import Plane
-import numpy as np
+from typing import Dict, List, Optional, Union
 
+import numpy as np
 from brainrender.actor import Actor
 from brainrender.scene import Scene
+from vedo import Plane
 
 
 def get_ax_idx(orientation: str) -> int:
@@ -39,11 +39,12 @@ class Slicer:
         if isinstance(position, (float, int)):
             if isinstance(orientation, str):
                 pval = position
-                position = root.centerOfMass()
+                position = root.center_of_mass()
                 position[get_ax_idx(orientation)] = pval
             else:
                 raise ValueError(
-                    "When a single float value is passed for position, the orientation should be one of the named orientations values"
+                    "When a single float value is passed for position, the orientation "
+                    "should be one of the named orientations values"
                 )
 
         position = np.array(position)
@@ -79,14 +80,14 @@ class Slicer:
         length += length / 3
 
         self.plane0 = Actor(
-            Plane(pos=position, normal=norm0, sx=length, sy=length),
+            Plane(pos=position, normal=norm0, s=(length, length)),
             name=f"Plane at {position} norm: {norm0}",
             br_class="plane",
         )
         self.plane0.width = length
 
         self.plane1 = Actor(
-            Plane(pos=p1, normal=norm1, sx=length, sy=length),
+            Plane(pos=p1, normal=norm1, s=(length, length)),
             name=f"Plane at {p1} norm: {norm1}",
             br_class="plane",
         )
@@ -110,14 +111,14 @@ class Slicer:
         projected: Dict[str, np.ndarray] = {}
         for n, actor in enumerate(regions):
             # get region/plane intersection
-            intersection = self.plane0.intersectWith(
+            intersection = self.plane0.intersect_with(
                 actor._mesh.triangulate()
             )  # points: (N x 3)
 
             if not intersection.points().shape[0]:
                 continue  # no intersection
 
-            pieces = intersection.splitByConnectivity()
+            pieces = intersection.split()
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
                 points = piece.join(reset=True).points()

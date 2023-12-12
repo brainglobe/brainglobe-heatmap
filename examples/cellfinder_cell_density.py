@@ -1,9 +1,8 @@
 import pandas as pd
-
 from bg_atlasapi.bg_atlas import BrainGlobeAtlas
 from brainrender._io import load_mesh_from_file
 
-import bgheatmaps as bgh
+import brainglobe_heatmap as bgh
 
 """
     This exmaple shows how to go from cell counts per region (e.g. as outputted by

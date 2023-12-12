@@ -1,7 +1,7 @@
-import bgheatmaps as bgh
+import brainglobe_heatmap as bgh
 
 """
-    This example shows how to use the `plan` functionality to visualize the 
+    This example shows how to use the `plan` functionality to visualize the
     position of the planes used to 'slice' the brain for heatmap visualization.
 """
 

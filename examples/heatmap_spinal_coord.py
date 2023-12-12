@@ -1,5 +1,4 @@
-import bgheatmaps as bgh
-
+import brainglobe_heatmap as bgh
 
 values = {
     "2Ssp": 3.5,
