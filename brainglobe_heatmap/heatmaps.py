@@ -176,7 +176,6 @@ class heatmap:
         """
         Plots the heatmap in 2D using matplotlib
         """
-        self.scene.close()
         projected, _ = self.slicer.get_structures_slice_coords(
             self.regions_meshes, self.scene.root
         )
