@@ -1,14 +1,20 @@
 from typing import Union
 
 import numpy as np
-from brainrender import settings
-from myterial import amber, amber_lighter, blue_dark, grey, orange, pink_dark
+from vedo import Arrow, Sphere
+from rich.table import Table
+from rich.panel import Panel
 from rich import print
 from rich.panel import Panel
 from rich.table import Table
 from vedo import Arrow, Plane, Sphere
 
-from brainglobe_heatmap.heatmaps import heatmap
+from myterial import pink_dark, blue_dark, green_dark, red_dark, amber_lighter, grey, amber, orange
+
+from bgheatmaps.heatmaps import heatmap
+from bgheatmaps.plane import Plane
+
+from brainrender import settings
 
 settings.BACKGROUND_COLOR = amber_lighter
 settings.ROOT_COLOR = grey
@@ -22,21 +28,14 @@ def print_plane(name: str, plane: Plane, color: str):
     def fmt_array(x: np.ndarray) -> str:
         return str(tuple([round(v, 2) for v in x]))
 
-    # create a table to display the vertices posittion
-    vert_tb = Table(box=None)
-    vert_tb.add_column(style=f"{amber}", justify="right")
-    vert_tb.add_column(style="white")
-
-    for i in range(4):
-        vert_tb.add_row(f"({i})", fmt_array(plane.mesh.points()[i]))
-
     tb = Table(box=None)
     tb.add_column(style=f"bold {orange}", justify="right")
     tb.add_column(style="white")
 
-    tb.add_row("center point: ", fmt_array(plane.mesh.center))
-    tb.add_row("norm: ", str(tuple(plane.mesh.normal)))
-    tb.add_row("Vertices: ", vert_tb)
+    tb.add_row("center point: ", fmt_array(plane.center))
+    tb.add_row("norm: ", str(tuple(plane.normal)))
+    tb.add_row("u: ", str(tuple(plane.u)))
+    tb.add_row("v: ", str(tuple(plane.v)))
 
     print(
         Panel.fit(
@@ -90,21 +89,23 @@ class plan(heatmap):
             (blue_dark, pink_dark),
             (0.8, 0.3),
         ):
-            plane.alpha(alpha).color(color)
+            plane_mesh = plane.to_mesh(self.scene.root)
+            plane_mesh.alpha(alpha).color(color)
 
-            self.scene.add(plane, transform=False)
-            self.scene.add(
-                Arrow(
-                    plane.center,
-                    np.array(plane.center)
-                    + np.array(plane.mesh.normal) * self.arrow_scale,
-                    c=color,
-                ),
-                transform=False,
-            )
+            self.scene.add(plane_mesh, transform=False)
+            for vector, v_color in zip((plane.normal, plane.u, plane.v), (color, red_dark, green_dark)):
+                self.scene.add(
+                    Arrow(
+                        plane.center,
+                        np.array(plane.center)
+                        + np.array(vector) * self.arrow_scale,
+                        c=v_color,
+                    ),
+                    transform=False,
+                )
 
             self.scene.add(
-                Sphere(plane.center, r=plane.width / 125, c="k"),
+                Sphere(plane_mesh.center, r=plane_mesh.width / 125, c="k"),
                 transform=False,
             )
 
