@@ -1,5 +1,5 @@
 # BG Heatmaps
-Rendering heatmaps with brainrender.
+Rendering anatomical heatmaps with brainrender and matplotlib.
 
 
 

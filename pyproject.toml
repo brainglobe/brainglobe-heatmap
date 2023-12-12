@@ -1,7 +1,7 @@
 [project]
 name = "brainglobe-heatmap"
 authors = [{name = "Federico Claudi", email= "hello@brainglobe.info"}]
-description = "Rendering heatmaps with brainrender"
+description = "Rendering anatomical heatmaps with brainrender and matplotlib"
 readme = "README.md"
 requires-python = ">=3.9.0"
 dynamic = ["version"]
