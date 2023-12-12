@@ -1,10 +1,9 @@
-from brainrender.actor import Actor
-from brainrender.scene import Scene
-from brainrender._utils import listify
-from typing import Dict, List, Self
-
+from typing import Dict, List
+from typing_extensions import Self
 import numpy as np
-np.float = float # for compatibility with old vedo
+from brainrender.actor import Actor
+
+np.float = float  # for compatibility with old vedo
 import vedo as vd
 
 try:
@@ -12,7 +11,8 @@ try:
 except ImportError:
     import vtkmodules.all as vtk
 
-vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
+# vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF)
+
 
 # from vedo 2023.4.6
 def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
@@ -45,27 +45,32 @@ def intersect_with_plane(mesh: vd.Mesh, origin=(0, 0, 0), normal=(1, 0, 0)):
     msh.name = "PlaneIntersection"
     return msh
 
+
 class Plane:
-    def __init__(self, origin: np.ndarray, u: np.ndarray, v: np.ndarray) -> None:
+    def __init__(
+        self, origin: np.ndarray, u: np.ndarray, v: np.ndarray
+    ) -> None:
         self.center = origin
         self.u = u / np.linalg.norm(u)
         self.v = v / np.linalg.norm(v)
-        assert np.isclose(np.dot(self.u, self.v), 0), f"The plane vectors must be orthonormal to each other (u ⋅ v = {np.dot(self.u, self.v)})"
+        assert np.isclose(
+            np.dot(self.u, self.v), 0
+        ), f"The plane vectors must be orthonormal to each other (u ⋅ v = {np.dot(self.u, self.v)})"
         self.normal = np.cross(self.u, self.v)
         self.M = np.vstack([u, v]).T
 
     @staticmethod
     def from_norm(origin: np.ndarray, norm: np.ndarray) -> Self:
         u = np.zeros(3)
-        m = np.where(norm != 0)[0][0] # orientation can't be all-zeros
-        n = (m+1)%3
+        m = np.where(norm != 0)[0][0]  # orientation can't be all-zeros
+        n = (m + 1) % 3
         u[n] = norm[m]
         u[m] = -norm[n]
-        norm = norm/np.linalg.norm(norm)
-        u = u/np.linalg.norm(u)
+        norm = norm / np.linalg.norm(norm)
+        u = u / np.linalg.norm(u)
         v = np.cross(norm, u)
         return Plane(origin, u, v)
-    
+
     def to_mesh(self, actor: Actor):
         bounds = actor.bounds()
         length = max(
@@ -76,7 +81,9 @@ class Plane:
         length += length / 3
 
         plane_mesh = Actor(
-            vd.Plane(pos=self.center, normal=self.normal, sx=length, sy=length),
+            vd.Plane(
+                pos=self.center, normal=self.normal, sx=length, sy=length
+            ),
             name=f"PlaneMesh at {self.center} norm: {self.normal}",
             br_class="plane_mesh",
         )
@@ -93,7 +100,9 @@ class Plane:
 
     def intersectWith(self, mesh: vd.Mesh):
         # mesh.intersect_with_plane(origin=self.center, normal=self.normal) in newer vedo
-        return intersect_with_plane(mesh, origin=self.center, normal=self.normal)
+        return intersect_with_plane(
+            mesh, origin=self.center, normal=self.normal
+        )
 
     # for Slicer.get_structures_slice_coords()
     def get_projections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
@@ -103,9 +112,13 @@ class Plane:
             intersection = self.intersectWith(mesh)
             if not intersection.points().shape[0]:
                 continue
-            pieces = intersection.splitByConnectivity() # intersection.split() in newer vedo
+            pieces = (
+                intersection.splitByConnectivity()
+            )  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
                 points = piece.join(reset=True).points()
-                projected[actor.name + f"_segment_{piece_n}"] = self.P3toP2(points)
+                projected[actor.name + f"_segment_{piece_n}"] = self.P3toP2(
+                    points
+                )
         return projected

@@ -1,20 +1,23 @@
 from typing import Union
 
 import numpy as np
-from vedo import Arrow, Sphere
-from rich.table import Table
-from rich.panel import Panel
+from brainrender import settings
+from myterial import (
+    amber_lighter,
+    blue_dark,
+    green_dark,
+    grey,
+    orange,
+    pink_dark,
+    red_dark,
+)
 from rich import print
 from rich.panel import Panel
 from rich.table import Table
 from vedo import Arrow, Plane, Sphere
 
-from myterial import pink_dark, blue_dark, green_dark, red_dark, amber_lighter, grey, amber, orange
-
-from bgheatmaps.heatmaps import heatmap
-from bgheatmaps.plane import Plane
-
-from brainrender import settings
+from brainglobe_heatmap.heatmaps import heatmap
+from brainglobe_heatmap.plane import Plane
 
 settings.BACKGROUND_COLOR = amber_lighter
 settings.ROOT_COLOR = grey
@@ -93,7 +96,9 @@ class plan(heatmap):
             plane_mesh.alpha(alpha).color(color)
 
             self.scene.add(plane_mesh, transform=False)
-            for vector, v_color in zip((plane.normal, plane.u, plane.v), (color, red_dark, green_dark)):
+            for vector, v_color in zip(
+                (plane.normal, plane.u, plane.v), (color, red_dark, green_dark)
+            ):
                 self.scene.add(
                     Arrow(
                         plane.center,

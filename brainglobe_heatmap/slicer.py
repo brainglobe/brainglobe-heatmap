@@ -1,8 +1,10 @@
-from typing import List, Dict, Union, Optional
+from typing import Dict, List, Optional, Union
+
 import numpy as np
 from brainrender.actor import Actor
 from brainrender.scene import Scene
-from bgheatmaps.plane import Plane
+
+from brainglobe_heatmap.plane import Plane
 
 
 def get_ax_idx(orientation: str) -> int:
@@ -60,14 +62,14 @@ class Slicer:
             # get the two planes
             # assures that u0×v0 is all-positive -> it's for plane0
             if orientation == "frontal":
-                u0, v0 = np.array([[0,0,-1], [0,1,0]])
+                u0, v0 = np.array([[0, 0, -1], [0, 1, 0]])
             elif orientation == "sagittal":
-                u0, v0 = np.array([[1,0,0], [0,1,0]])
-            else: # orientation == "horizontal"
-                u0, v0 = np.array([[0,0,-1], [-1,0,0]])
+                u0, v0 = np.array([[1, 0, 0], [0, 1, 0]])
+            else:  # orientation == "horizontal"
+                u0, v0 = np.array([[0, 0, -1], [-1, 0, 0]])
             # u0, v0 = np.delete(np.array([[-1,0,0], [0,1,0], [0,0,-1]]), axidx, 0) # can't use this formula for backward compatibility
             plane0 = Plane(position, u0, v0)
-            u1, v1 = u0.copy(), -v0.copy() # set u1:=u0 and v1:=-v0
+            u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
             # we could, alternatively set u1:=v0 and v1:=u0
             # u1, v1 = v0.copy(), u0.copy()
             plane1 = Plane(p1, u1, v1)
