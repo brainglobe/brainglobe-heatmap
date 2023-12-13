@@ -1,9 +1,10 @@
-from typing import List, Dict, Union, Optional
-from vedo import Plane
-import numpy as np
+from typing import Dict, List, Optional, Union
 
+import numpy as np
 from brainrender.actor import Actor
 from brainrender.scene import Scene
+
+from brainglobe_heatmap.plane import Plane
 
 
 def get_ax_idx(orientation: str) -> int:
@@ -30,7 +31,8 @@ class Slicer:
         root: Actor,
     ):
         """
-        Computes the position of two planes given a point (position) and an orientation (named orientation or
+        Computes the position of two planes given a point (position) and an
+        orientation (named orientation or
         3D vector) + thickness (spacing between the two planes)
         """
         if position is None:
@@ -39,11 +41,13 @@ class Slicer:
         if isinstance(position, (float, int)):
             if isinstance(orientation, str):
                 pval = position
-                position = root.centerOfMass()
+                position = root.center_of_mass()
                 position[get_ax_idx(orientation)] = pval
             else:
                 raise ValueError(
-                    "When a single float value is passed for position, the orientation should be one of the named orientations values"
+                    "When a single float value is passed for "
+                    "position, the orientation "
+                    "should be one of the named orientations values"
                 )
 
         position = np.array(position)
@@ -58,71 +62,48 @@ class Slicer:
             p1 = position - shift
 
             # get the two planes
-            norm0, norm1 = np.zeros(3), np.zeros(3)
-            norm0[axidx] = 1
-            norm1[axidx] = -1
+            # assures that u0×v0 is all-positive -> it's for plane0
+            if orientation == "frontal":
+                u0, v0 = np.array([[0, 0, -1], [0, 1, 0]])
+            elif orientation == "sagittal":
+                u0, v0 = np.array([[1, 0, 0], [0, 1, 0]])
+            else:  # orientation == "horizontal"
+                u0, v0 = np.array([[0, 0, -1], [-1, 0, 0]])
+            plane0 = Plane(position, u0, v0)
+            u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
+            plane1 = Plane(p1, u1, v1)
         else:
             orientation = np.array(orientation)
 
             p1 = position + orientation * thickness  # type: ignore
 
             norm0 = orientation  # type: ignore
+            plane0 = Plane.from_norm(position, norm0)
             norm1 = -orientation  # type: ignore
-
-        # get the length of the largest dimension of the atlas
-        bounds = root.bounds()
-        length = max(
-            bounds[1] - bounds[0],
-            bounds[3] - bounds[2],
-            bounds[5] - bounds[4],
-        )
-        length += length / 3
+            plane1 = Plane.from_norm(p1, norm1)
 
         self.plane0 = Actor(
-            Plane(pos=position, normal=norm0, sx=length, sy=length),
-            name=f"Plane at {position} norm: {norm0}",
+            plane0,
+            name=f"Plane at {plane0.center} norm: {plane0.normal}",
             br_class="plane",
         )
-        self.plane0.width = length
-
         self.plane1 = Actor(
-            Plane(pos=p1, normal=norm1, sx=length, sy=length),
-            name=f"Plane at {p1} norm: {norm1}",
+            plane1,
+            name=f"Plane at {plane1.center} norm: {plane1.normal}",
             br_class="plane",
         )
-        self.plane1.width = length
 
     def get_structures_slice_coords(self, regions: List[Actor], root: Actor):
         """
         It computes the intersection between the first slice plane and all
         user given brain regions,
-        returning the coordinates of each region as a set of XY (i.e. in the plane's
+        returning the coordinates of each region as a
+        set of XY (i.e., in the plane's
         coordinates system) coordinates
         """
         regions = regions + [root]
 
-        pts = self.plane0.points() - self.plane0.points()[0]
-        v = pts[1] / np.linalg.norm(pts[1])
-        w = pts[2] / np.linalg.norm(pts[2])
-
-        M = np.vstack([v, w]).T  # 3 x 2
-
-        projected: Dict[str, np.ndarray] = {}
-        for n, actor in enumerate(regions):
-            # get region/plane intersection
-            intersection = self.plane0.intersectWith(
-                actor._mesh.triangulate()
-            )  # points: (N x 3)
-
-            if not intersection.points().shape[0]:
-                continue  # no intersection
-
-            pieces = intersection.splitByConnectivity()
-            for piece_n, piece in enumerate(pieces):
-                # sort coordinates
-                points = piece.join(reset=True).points()
-
-                projected[actor.name + f"_segment_{piece_n}"] = points @ M
+        projected: Dict[str, np.ndarray] = self.plane0.get_projections(regions)
 
         # get output coordinates
         coordinates: Dict[str, List[np.ndarray]] = dict()
@@ -138,13 +119,13 @@ class Slicer:
         self, scene: Scene, regions: List[Actor], root: Actor
     ):
         """
-        Slices regions' meshjes with plane0 and adds the resulting intersection
+        Slices regions' meshes with plane0 and adds the resulting intersection
         to the brainrender scene.
         """
         for region in regions + [root]:
             intersection = self.plane0.intersectWith(region._mesh)
 
-            if len(intersection.points()):
+            if len(intersection.vertices):
                 scene.add(intersection, transform=False)
 
             if region.name != "root":
@@ -168,8 +149,9 @@ def get_structures_slice_coords(
     atlas_name: Optional[str] = None,
 ) -> Dict[str, List[np.ndarray]]:
     """
-    Given a list of regions name and a set of plane parameters, it returns
-    the coordinates of the plane/regions' intersection in the plane's coordinates
+    Given a list of region name and a set of plane parameters,
+    it returns the coordinates of the plane/regions'
+    intersection in the plane's coordinates
     """
 
     scene = Scene(atlas_name=atlas_name)
@@ -183,5 +165,4 @@ def get_structures_slice_coords(
     structures_coords = slicer.get_structures_slice_coords(
         regions_actors, scene.root
     )[1]
-    scene.close()
     return structures_coords

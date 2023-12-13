@@ -1,8 +1,8 @@
-import bgheatmaps as bgh
-
 """
     This example shows how to use visualize a heatmap in 3D
 """
+
+import brainglobe_heatmap as bgh
 
 values = dict(  # scalar values for each region
     TH=1,

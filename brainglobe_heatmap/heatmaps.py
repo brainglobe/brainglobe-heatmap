@@ -1,17 +1,15 @@
-from vedo.colors import colorMap as map_color
-from typing import Optional, Union, Dict, Tuple
-import numpy as np
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+from typing import Dict, Optional, Tuple, Union
+
 import matplotlib as mpl
-
-from myterial import grey_darker
-
-from brainrender import Scene
-from brainrender import settings, cameras
+import matplotlib.pyplot as plt
+import numpy as np
+from brainrender import Scene, cameras, settings
 from brainrender.atlas import Atlas
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from myterial import grey_darker
+from vedo.colors import color_map as map_color
 
-from bgheatmaps.slicer import Slicer
+from brainglobe_heatmap.slicer import Slicer
 
 # Set settings for heatmap visualization
 settings.SHOW_AXES = False
@@ -20,9 +18,11 @@ settings.ROOT_ALPHA = 0.3
 settings.ROOT_COLOR = grey_darker
 
 # Set settings for transparent background
+# vedo for transparent bg
+# settings.vsettings.screenshotTransparentBackground = True
 
-# settings.vsettings.screenshotTransparentBackground = True  # vedo for transparent bg
-# settings.vsettings.useFXAA = False  # This needs to be false for transparent bg
+# This needs to be false for transparent bg
+# settings.vsettings.useFXAA = False
 
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
@@ -34,13 +34,17 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     for k, v in values.items():
         if not isinstance(v, (float, int)):
             raise ValueError(
-                f'Heatmap values should be floats, not: {type(v)} for entry "{k}"'
+                f"Heatmap values should be floats, "
+                f'not: {type(v)} for entry "{k}"'
             )
 
         if k not in atlas.lookup_df.acronym.values:
             raise ValueError(f'Region name "{k}" not recognized')
 
-    vmax, vmin = max(values.values()), min(values.values())
+    not_nan = [v for v in values.values() if not np.isnan(v)]
+    if len(not_nan) == 0:
+        return np.nan, np.nan
+    vmax, vmin = max(not_nan), min(not_nan)
     return vmax, vmin
 
 
@@ -108,8 +112,8 @@ class heatmap:
         if _vmax == _vmin:
             _vmin = _vmax * 0.5
 
-        vmin = vmin or _vmin
-        vmax = vmax or _vmax
+        vmin = vmin if vmin == 0 or vmin else _vmin
+        vmax = vmax if vmax == 0 or vmax else _vmax
         self.vmin, self.vmax = vmin, vmax
 
         self.colors = {
@@ -171,14 +175,13 @@ class heatmap:
         xlabel: str = "μm",
         ylabel: str = "μm",
         hide_axes: bool = False,
-        filename: str = None,
-        cbar_label: str = None,
+        filename: Optional[str] = None,
+        cbar_label: Optional[str] = None,
         **kwargs,
     ) -> plt.Figure:
         """
         Plots the heatmap in 2D using matplotlib
         """
-        self.scene.close()
         projected, _ = self.slicer.get_structures_slice_coords(
             self.regions_meshes, self.scene.root
         )
@@ -273,12 +276,14 @@ if __name__ == "__main__":
     heatmap(
         values,
         position=None,
+        # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
         orientation=(
             1,
             1,
             0,
-        ),  # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-        thickness=250,  # thickness of the slices used for rendering (in microns)
+        ),
+        # thickness of the slices used for rendering (in microns)
+        thickness=250,
         title="frontal",
         vmin=-5,
         vmax=3,

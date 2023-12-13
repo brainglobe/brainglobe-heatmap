@@ -1,8 +1,8 @@
-import bgheatmaps as bgh
-
 """
     This example shows how to use visualize a heatmap in 2D
 """
+
+import brainglobe_heatmap as bgh
 
 values = dict(  # scalar values for each region
     TH=1,
@@ -25,8 +25,10 @@ values = dict(  # scalar values for each region
 
 f = bgh.heatmap(
     values,
-    position=5000,  # when using a named orientation you can pass a single value!
-    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    # when using a named orientation, you can pass a single value!
+    position=5000,
+    # 'frontal' or 'sagittal,' or 'horizontal' or a tuple (x,y,z)
+    orientation="frontal",
     title="horizontal view",
     vmin=-5,
     vmax=3,

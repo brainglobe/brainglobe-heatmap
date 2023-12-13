@@ -1,15 +1,14 @@
-import bgheatmaps as bgh
-
-from matplotlib import pyplot as plt
-import matplotlib.patheffects as path_effects
-
-from bg_atlasapi import BrainGlobeAtlas
-
-
 """
-    This example shows how to use bgheatmaps to get the contours of 'sliced'
+    This example shows how to use brainglobe_heatmap
+    to get the contours of 'sliced'
     brain regions to overlay them over histological data.
 """
+
+import matplotlib.patheffects as path_effects
+from bg_atlasapi import BrainGlobeAtlas
+from matplotlib import pyplot as plt
+
+import brainglobe_heatmap as bgh
 
 atlas_name = "mpin_zfish_1um"  # name of the atlas
 

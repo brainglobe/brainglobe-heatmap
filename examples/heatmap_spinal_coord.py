@@ -1,5 +1,4 @@
-import bgheatmaps as bgh
-
+import brainglobe_heatmap as bgh
 
 values = {
     "2Ssp": 3.5,
@@ -23,7 +22,8 @@ values = {
 f = bgh.heatmap(
     values,
     position=1000,
-    orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="sagittal",
     thickness=1000,
     atlas_name="allen_cord_20um",
     format="2D",
