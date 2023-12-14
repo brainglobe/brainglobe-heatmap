@@ -1,3 +1,4 @@
-from bgheatmaps.heatmaps import heatmap
-from bgheatmaps.planner import plan
-from bgheatmaps.slicer import get_structures_slice_coords
+from warnings import warn
+
+warn("This package has been renamed to `brainglobe-heatmap`. "
+     "Please install the latest version with `pip install brainglobe-heatmap`")

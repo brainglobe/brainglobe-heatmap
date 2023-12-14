@@ -1,3 +1,6 @@
+**This package has been renamed to `brainglobe-heatmap`. Please install the 
+latest version with `pip install brainglobe-heatmap`**
+
 # BG Heatmaps
 Rendering heatmaps with brainrender.
 
