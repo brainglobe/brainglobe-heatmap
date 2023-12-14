@@ -7,13 +7,13 @@ Rendering anatomical heatmaps with brainrender and matplotlib.
 
 
 
-`bgheatmap` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
+`brainglobe-heatmap` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
 
 ![](images/hm_2d.png)
 ![](images/hm_3d.png)
 
 ### installation
-`pip install bgheatmap`
+`pip install brainglobe-heatmap`
 
 
 ## User guide
@@ -31,7 +31,7 @@ For example:
     )
 ```
 
-`bgheatmap` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
+`brainglobe-heatmap` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
 Next, to create visualizations like the ones shown above, the three dimensional sceen needs to be **sliced** to expose
 the relevant parts.
 This is done by specifying the position and orientation of a `Plane` which cuts through the scene.
@@ -50,11 +50,11 @@ To keep a section of the 3D brain, two planes with normal vectors facing in oppo
 and everything in-between the two planes is kept as a slice.
 
 ### Slicing plane position
-Finding the right position and orientation to the plane can take some tweaking. `bgheatmap` provides a `planner` class that makes the process easier by showing the position of the planes and how they intersect with the user provided regions (see image above).
+Finding the right position and orientation to the plane can take some tweaking. `brainglobe-heatmap` provides a `planner` class that makes the process easier by showing the position of the planes and how they intersect with the user provided regions (see image above).
 In `examples/plan.py` there's an example showing how to use the `planner`:
 
 ```python
-import bgheatmap as bgh
+import brainglobe_heatmap as bgh
 
 
 planner = bgh.plan(
@@ -119,10 +119,10 @@ bgh.heatmap(
 ).show()
 ```
 
-Here, `format` spcifies if a 2D plot should be made (using `matplotlib`) or a 3D rendering instead (using `brainrender`). The `cmap` parameter specifies the colormap used and `vmin, vmax` the color range.
+Here, `format` specifies if a 2D plot should be made (using `matplotlib`) or a 3D rendering instead (using `brainrender`). The `cmap` parameter specifies the colormap used and `vmin, vmax` the color range.
 
 ### Regions coordinates
-You can use `bgheatmap` to get the coordinates of the 2D 'slices' (in the 2D plane's coordinates system):
+You can use `brainglobe-heatmap` to get the coordinates of the 2D 'slices' (in the 2D plane's coordinates system):
 
 
 ```python
@@ -141,20 +141,19 @@ coordinates = bgh.get_plane_coordinates(
 )
 ```
 
-## Using `bgheatmap` with other atlases.
+## Using `brainglobe-heatmap` with other atlases.
 
-`bgheatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `bgheatmap`'s functionality is compatible with any of the atlases supported by the atlas API.
-`bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
-For more information see the API's [https://docs.brainglobe.info/bg-atlasapi/introduction](documentation).
+`brainglobe-heatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `brainglobe-heatmap`'s functionality is compatible with any of the atlases supported by the atlas API. `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
+For more information see the API's [documentation](https://brainglobe.info/documentation/bg-atlasapi/index.html).
 
 ## Contributing
-Contributions to bg-heatmaps are more than welcome. Please see the [contributing guide](https://github.com/brainglobe/.github/blob/main/CONTRIBUTING.md).
+Contributions to `brainglobe-heatmap` are more than welcome. Please see the [Developer's guide](https://github.com/brainglobe/.github/blob/main/CONTRIBUTING.md).
 
-# Citing bgheatmap
-If you use `bgheatmap` in your work, please cite it as:
+# Citing `brainglobe-heatmap`
+If you use `brainglobe-heatmap` in your work, please cite it as:
 
 ```
 Federico Claudi, & Luigi Petrucco. (2022). brainglobe/bg-heatmaps: (V0.2). Zenodo. https://doi.org/10.5281/zenodo.5891814
 ```
 
-Bgheatmap was developed by Federico Claudi and Luigi Petrucco, with the help of Marco Musy (the developer of [`vedo`](https://github.com/marcomusy/vedo))
+`brainglobe-heatmap` was originally developed by Federico Claudi and Luigi Petrucco, with the help of Marco Musy (the developer of [`vedo`](https://github.com/marcomusy/vedo))
