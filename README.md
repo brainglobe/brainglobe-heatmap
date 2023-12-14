@@ -1,18 +1,15 @@
 # brainglobe-heatmap
-Rendering anatomical heatmaps with brainrender and matplotlib.
+`brainglobe-heatmap` allows you to create heatmaps, mapping scalar values for each brain region (e.g., number of labelled cells in each region) to a color and creating beautiful visualizations in 2D (using [matplotlib](https://matplotlib.org/) or 3D (using [brainrender](https://brainglobe.info/documentation/brainrender/index.html)).
 
+![2D heatmap generated using matplotlib](images/hm_2d.png)
 
+**2D heatmap generated using matplotlib**
 
-[![DOI](https://zenodo.org/badge/442271642.svg)](https://zenodo.org/badge/latestdoi/442271642)
+![3D heatmap generated using brainrender](images/hm_3d.png)
 
+**3D heatmap generated using brainrender**
 
-
-`brainglobe-heatmap` makes it easier to create beautiful heatmaps from anatomical data mapping a scalar values for each brain region (e.g., number of labelled cells in each region) to color and creating beautiful visualizations in 3D and 2D.
-
-![](images/hm_2d.png)
-![](images/hm_3d.png)
-
-### installation
+## Installation
 `pip install brainglobe-heatmap`
 
 
@@ -32,7 +29,7 @@ For example:
 ```
 
 `brainglobe-heatmap` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
-Next, to create visualizations like the ones shown above, the three dimensional sceen needs to be **sliced** to expose
+Next, to create visualizations like the ones shown above, the three dimensional scene needs to be **sliced** to expose
 the relevant parts.
 This is done by specifying the position and orientation of a `Plane` which cuts through the scene.
 
@@ -149,7 +146,7 @@ For more information see the API's [documentation](https://brainglobe.info/docum
 ## Contributing
 Contributions to `brainglobe-heatmap` are more than welcome. Please see the [Developer's guide](https://github.com/brainglobe/.github/blob/main/CONTRIBUTING.md).
 
-# Citing `brainglobe-heatmap`
+## Citing `brainglobe-heatmap`
 If you use `brainglobe-heatmap` in your work, please cite it as:
 
 ```
