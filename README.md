@@ -1,4 +1,4 @@
-# BG Heatmaps
+# brainglobe-heatmap
 Rendering anatomical heatmaps with brainrender and matplotlib.
 
 
