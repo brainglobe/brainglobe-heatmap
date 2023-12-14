@@ -9,7 +9,7 @@ requirements = ["brainrender", "matplotlib", "numpy", "myterial", "rich"]
 
 setup(
     name="bgheatmap",
-    version="0.1.0",
+    version="0.4.0",
     description="Brain regions heatmaps in brainrender",
     long_description=long_description,
     long_description_content_type="text/markdown",
