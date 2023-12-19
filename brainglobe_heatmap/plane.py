@@ -50,16 +50,16 @@ class Plane:
         plane_mesh.width = length
         return plane_mesh
 
-    def centerOfMass(self):
+    def center_of_mass(self):
         return self.center
 
-    def P3toP2(self, ps):
+    def p3_to_p2(self, ps):
         # ps is a list of 3D points
         # returns a list of 2D point mapped on
         # the plane (u -> x axis, v -> y axis)
         return (ps - self.center) @ self.M
 
-    def intersectWith(self, mesh: vd.Mesh):
+    def intersect_with(self, mesh: vd.Mesh):
         return mesh.intersect_with_plane(
             origin=self.center, normal=self.normal
         )
@@ -69,14 +69,14 @@ class Plane:
         projected = {}
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
-            intersection = self.intersectWith(mesh)
+            intersection = self.intersect_with(mesh)
             if not intersection.vertices.shape[0]:
                 continue
             pieces = intersection.split()  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
                 points = piece.join(reset=True).vertices
-                projected[actor.name + f"_segment_{piece_n}"] = self.P3toP2(
+                projected[actor.name + f"_segment_{piece_n}"] = self.p3_to_p2(
                     points
                 )
         return projected
