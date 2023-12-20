@@ -19,10 +19,10 @@ settings.ROOT_COLOR = grey_darker
 
 # Set settings for transparent background
 # vedo for transparent bg
-# settings.vsettings.screenshotTransparentBackground = True
+# settings.vsettings.screenshot_transparent_background = True
 
 # This needs to be false for transparent bg
-# settings.vsettings.useFXAA = False
+# settings.vsettings.use_fxaa = False
 
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
@@ -157,7 +157,7 @@ class heatmap:
                 camera = self.orientation
         else:
             self.orientation = np.array(self.orientation)
-            com = self.slicer.plane0.centerOfMass()
+            com = self.slicer.plane0.center_of_mass()
             camera = {
                 "pos": com - self.orientation * 2 * np.linalg.norm(com),
                 "viewup": (0, -1, 0),

@@ -36,7 +36,7 @@ class Slicer:
         3D vector) + thickness (spacing between the two planes)
         """
         if position is None:
-            position = root.centerOfMass()
+            position = root.center_of_mass()
 
         if isinstance(position, (float, int)):
             if isinstance(orientation, str):
@@ -123,7 +123,7 @@ class Slicer:
         to the brainrender scene.
         """
         for region in regions + [root]:
-            intersection = self.plane0.intersectWith(region._mesh)
+            intersection = self.plane0.intersect_with(region._mesh)
 
             if len(intersection.vertices):
                 scene.add(intersection, transform=False)
