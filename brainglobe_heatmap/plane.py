@@ -5,7 +5,10 @@ import vedo as vd
 import vtkmodules.all as vtk
 from brainrender.actor import Actor
 
-vtk.vtkLogger.SetStderrVerbosity(vtk.vtkLogger.VERBOSITY_OFF) # remove logger's prints during intersect_with_plane()
+vtk.vtkLogger.SetStderrVerbosity(
+    vtk.vtkLogger.VERBOSITY_OFF
+)  # remove logger's prints during intersect_with_plane()
+
 
 class Plane:
     def __init__(

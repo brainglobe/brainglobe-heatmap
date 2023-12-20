@@ -6,6 +6,7 @@ from brainrender.scene import Scene
 
 from brainglobe_heatmap.plane import Plane
 
+
 def get_ax_idx(orientation: str) -> int:
     """
     Given a named orientation get the idx
