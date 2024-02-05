@@ -2,6 +2,7 @@
     This example shows how to get the coordinates
     of selected brain regions in the slicing plane
 """
+
 import brainglobe_heatmap as bgh
 
 regions = [
