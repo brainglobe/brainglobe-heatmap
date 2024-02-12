@@ -23,7 +23,6 @@ abstract: >-
   labelled cells in each region) to a color and creating
   beautiful visualizations in 2D or 3D.
 license: MIT
-version: 0.5.1
 date-released: '2023-12-23'
 doi: 10.5281/zenodo.10375274
 year: 2023
