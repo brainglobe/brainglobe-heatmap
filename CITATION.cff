@@ -1,0 +1,28 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: brainglobe-heatmap
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Federico
+    family-names: Claudi
+  - given-names: Luigi
+    family-names: Petrucco
+  - given-names: BrainGlobe
+    family-names: Developers
+    email: hello@brainglobe.info
+repository-code: 'https://github.com/brainglobe/brainglobe-heatmap'
+url: 'https://brainglobe.info'
+abstract: >-
+  brainglobe-heatmap allows you to create heatmaps, mapping
+  scalar values for each brain region (e.g., number of
+  labelled cells in each region) to a color and creating
+  beautiful visualizations in 2D or 3D.
+license: MIT
+date-released: '2023-12-23'
+doi: 10.5281/zenodo.10375274
+year: 2023
