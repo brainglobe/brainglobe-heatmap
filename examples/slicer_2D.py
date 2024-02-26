@@ -5,7 +5,7 @@
 """
 
 import matplotlib.patheffects as path_effects
-from bg_atlasapi import BrainGlobeAtlas
+from brainglobe_atlasapi import BrainGlobeAtlas
 from matplotlib import pyplot as plt
 
 import brainglobe_heatmap as bgh
