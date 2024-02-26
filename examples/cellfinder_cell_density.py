@@ -5,7 +5,7 @@
 """
 
 import pandas as pd
-from bg_atlasapi.bg_atlas import BrainGlobeAtlas
+from brainglobe_atlasapi.bg_atlas import BrainGlobeAtlas
 from brainrender._io import load_mesh_from_file
 
 import brainglobe_heatmap as bgh
