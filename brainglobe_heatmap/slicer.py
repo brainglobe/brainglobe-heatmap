@@ -38,7 +38,7 @@ class Slicer:
         if position is None:
             position = root.center_of_mass()
 
-        if isinstance(position, (float, int)):
+        if isinstance(position, (float, int, np.number)):
             if isinstance(orientation, str):
                 pval = position
                 position = root.center_of_mass()
@@ -68,7 +68,7 @@ class Slicer:
             elif orientation == "sagittal":
                 u0, v0 = np.array([[1, 0, 0], [0, 1, 0]])
             else:  # orientation == "horizontal"
-                u0, v0 = np.array([[0, 0, -1], [-1, 0, 0]])
+                u0, v0 = np.array([[0, 0, 1], [1, 0, 0]])
             plane0 = Plane(position, u0, v0)
             u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
             plane1 = Plane(p1, u1, v1)
