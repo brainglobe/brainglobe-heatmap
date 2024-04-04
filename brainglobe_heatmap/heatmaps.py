@@ -121,7 +121,7 @@ class heatmap:
             r: list(map_color(v, name=cmap, vmin=vmin, vmax=vmax))
             for r, v in values.items()
         }
-        self.colors["root"] = grey_darker
+        self.colors["root"] = settings.ROOT_COLOR
 
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
