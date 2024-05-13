@@ -143,9 +143,6 @@ coordinates = bgh.get_plane_coordinates(
 `brainglobe-heatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `brainglobe-heatmap`'s functionality is compatible with any of the atlases supported by the atlas API. `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
 For more information see the API's [documentation](https://brainglobe.info/documentation/brainglobe-atlasapi/index.html).
 
-## Contributing
-Contributions to `brainglobe-heatmap` are more than welcome. Please see the [Developer's guide](https://github.com/brainglobe/.github/blob/main/CONTRIBUTING.md).
-
 ## Citing `brainglobe-heatmap`
 If you use `brainglobe-heatmap` in your work, please cite it as:
 
@@ -153,4 +150,28 @@ If you use `brainglobe-heatmap` in your work, please cite it as:
 Federico Claudi, & Luigi Petrucco. (2022). brainglobe/bg-heatmaps: (V0.2). Zenodo. https://doi.org/10.5281/zenodo.5891814
 ```
 
-`brainglobe-heatmap` was originally developed by Federico Claudi and Luigi Petrucco, with the help of Marco Musy (the developer of [`vedo`](https://github.com/marcomusy/vedo))
+If you use `brainrender` via `brainglobe-heatmap` (i.e. for 3D visualisation), please also cite it:
+```
+Claudi, F., Tyson, A. L., Petrucco, L., Margrie, T.W., Portugues, R.,  Branco, T. (2021) "Visualizing anatomically registered data with Brainrender&quot; <i>eLife</i> 2021;10:e65751 [doi.org/10.7554/eLife.65751](https://doi.org/10.7554/eLife.65751)
+```
+
+BibTeX:
+
+``` bibtex
+@article{Claudi2021,
+author = {Claudi, Federico and Tyson, Adam L. and Petrucco, Luigi and Margrie, Troy W. and Portugues, Ruben and Branco, Tiago},
+doi = {10.7554/eLife.65751},
+issn = {2050084X},
+journal = {eLife},
+pages = {1--16},
+pmid = {33739286},
+title = {{Visualizing anatomically registered data with brainrender}},
+volume = {10},
+year = {2021}
+}
+
+```
+
+## Contributing
+
+Contributions to brainrender are more than welcome. Please see the [developers guide](https://brainglobe.info/community/developers/index.html).
