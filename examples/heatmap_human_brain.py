@@ -4,6 +4,7 @@ human brain atlas.
 
 N.B. the physical scales are very different to e.g. the small animal atlases.
 """
+
 import brainglobe_heatmap as bgh
 
 values = dict(  # scalar values for each region
