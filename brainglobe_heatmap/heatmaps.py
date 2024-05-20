@@ -51,7 +51,7 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
 class heatmap:
     def __init__(
         self,
-        values: Dict[str, float],
+        values: Dict,
         position: Union[list, tuple, np.ndarray],
         orientation: Union[str, tuple] = "frontal",
         hemisphere: str = "both",

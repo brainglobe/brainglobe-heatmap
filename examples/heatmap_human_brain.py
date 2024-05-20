@@ -4,14 +4,11 @@ human brain atlas.
 
 N.B. the physical scales are very different to e.g. the small animal atlases.
 """
+
 import brainglobe_heatmap as bgh
 
-values = dict(  # scalar values for each region
-    SFG=1,
-    PrCG=2,
-    Ca=4,
-    Pu=10,
-)
+values = dict(SFG=1, PrCG=2, Ca=4, Pu=10)  # scalar values for each region
+
 
 scene = bgh.heatmap(
     values,
