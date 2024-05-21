@@ -4,6 +4,8 @@
     density (count/volume) of cells in each brain region
 """
 
+from pathlib import Path
+
 import pandas as pd
 from brainglobe_atlasapi.bg_atlas import BrainGlobeAtlas
 from brainrender._io import load_mesh_from_file
@@ -11,7 +13,9 @@ from brainrender._io import load_mesh_from_file
 import brainglobe_heatmap as bgh
 
 # get the number of cells for each region
-data = pd.read_hdf("examples/cell_counts_example.h5")
+cells_path = Path(__file__).parent / "cell_counts_example.h5"
+
+data = pd.read_hdf(cells_path)
 cell_counts = data.groupby("region").count()
 
 # get regions two levels up the hierarchy
