@@ -48,7 +48,7 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     return vmax, vmin
 
 
-class heatmap:
+class Heatmap:
     def __init__(
         self,
         values: Dict,

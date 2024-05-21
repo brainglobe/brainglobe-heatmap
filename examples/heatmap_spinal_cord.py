@@ -19,7 +19,7 @@ values = {
 }
 
 
-f = bgh.heatmap(
+f = bgh.Heatmap(
     values,
     position=1000,
     # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)

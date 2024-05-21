@@ -136,7 +136,7 @@ class Slicer:
         Slices the meshes in a 3D brainrender scene using the gien planes
         """
         # slice the scene
-        for n, plane in enumerate((self.plane0, self.plane1)):
+        for _, plane in enumerate((self.plane0, self.plane1)):
             scene.slice(plane, actors=regions, close_actors=True)
 
         scene.slice(self.plane0, actors=scene.root, close_actors=False)

@@ -16,7 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 from vedo import Arrow, Sphere
 
-from brainglobe_heatmap.heatmaps import heatmap
+from brainglobe_heatmap.heatmaps import Heatmap
 from brainglobe_heatmap.plane import Plane
 
 settings.BACKGROUND_COLOR = amber_lighter
@@ -47,7 +47,7 @@ def print_plane(name: str, plane: Plane, color: str):
     )
 
 
-class plan(heatmap):
+class plan(Heatmap):
     def __init__(
         self,
         regions: Union[dict, list],
@@ -116,38 +116,3 @@ class plan(heatmap):
 
         self.scene.render(interactive=self.interactive, zoom=self.zoom)
         return self.scene
-
-
-if __name__ == "__main__":
-    regions = dict(  # scalar values for each region
-        TH=1,
-        RSP=0.2,
-        AI=0.4,
-        SS=-3,
-        MO=2.6,
-        PVZ=-4,
-        LZ=-3,
-        VIS=2,
-        AUD=0.3,
-        RHP=-0.2,
-        STR=0.5,
-        CB=0.5,
-        FRP=-1.7,
-        HIP=3,
-        PA=-4,
-    )
-
-    plan(
-        regions,
-        # position of the center point of the plane
-        position=(
-            8000,
-            5000,
-            5000,
-        ),
-        # or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-        orientation="frontal",
-        # thickness of the slices used for rendering (in microns)
-        thickness=2000,
-        arrow_scale=750,
-    ).show()

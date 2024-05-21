@@ -20,7 +20,7 @@ values = {
     "cerebellum": 0.5,
 }
 
-f = bgh.heatmap(
+f = bgh.Heatmap(
     values,
     position=175,
     # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
