@@ -74,7 +74,8 @@ Whe using one of the named orientation, you don't need to pass a whole set of `(
 f = bgh.Heatmap(
     values,
     position=1000,
-    orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="sagittal",
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=1000,
     atlas_name="allen_cord_20um",
     format='2D',
@@ -83,11 +84,13 @@ f = bgh.Heatmap(
 ```
 
 Also, you can create a slice with a plane centered in the brain by passing `position=None`:
+
 ```python
 f = bgh.Heatmap(
     values,
     position=None,
-    orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="sagittal",
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     thickness=1000,
     atlas_name="mpin_zfish_1um",
     format='2D',
@@ -107,7 +110,8 @@ bgh.Heatmap(
         5000,
         5000,
     ),
-    orientation="horizontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+    orientation="horizontal",
+    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
     title="horizontal view",
     vmin=-5,
     vmax=3,
