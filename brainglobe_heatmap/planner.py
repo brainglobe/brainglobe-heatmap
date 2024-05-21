@@ -16,7 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 from vedo import Arrow, Sphere
 
-from brainglobe_heatmap.heatmaps import heatmap
+from brainglobe_heatmap.heatmaps import Heatmap
 from brainglobe_heatmap.plane import Plane
 
 settings.BACKGROUND_COLOR = amber_lighter
@@ -47,7 +47,7 @@ def print_plane(name: str, plane: Plane, color: str):
     )
 
 
-class plan(heatmap):
+class plan(Heatmap):
     def __init__(
         self,
         regions: Union[dict, list],

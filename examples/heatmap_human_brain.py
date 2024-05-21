@@ -10,7 +10,7 @@ import brainglobe_heatmap as bgh
 values = dict(SFG=1, PrCG=2, Ca=4, Pu=10)  # scalar values for each region
 
 
-scene = bgh.heatmap(
+scene = bgh.Heatmap(
     values,
     position=(100000, 100000, 100000),
     thickness=1000,

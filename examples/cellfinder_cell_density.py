@@ -39,7 +39,7 @@ cell_counts = cell_counts.loc[cell_counts.density > 5 * 1e-9]
 print(cell_counts)
 
 
-f = bgh.heatmap(
+f = bgh.Heatmap(
     cell_counts.density.to_dict(),
     position=(
         8000,

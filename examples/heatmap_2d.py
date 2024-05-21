@@ -23,7 +23,7 @@ values = dict(  # scalar values for each region
 )
 
 
-f = bgh.heatmap(
+f = bgh.Heatmap(
     values,
     # when using a named orientation, you can pass a single value!
     position=5000,

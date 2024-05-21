@@ -71,7 +71,7 @@ The position of the center of the plane is given by a set of `(x, y, z)` coordin
 Whe using one of the named orientation, you don't need to pass a whole set of `(x, y, z)` coordinates for the plane center. A single value is sufficient as the other two won't affect the plane position:
 
 ```python
-f = bgh.heatmap(
+f = bgh.Heatmap(
     values,
     position=1000,
     orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
@@ -84,7 +84,7 @@ f = bgh.heatmap(
 
 Also, you can create a slice with a plane centered in the brain by passing `position=None`:
 ```python
-f = bgh.heatmap(
+f = bgh.Heatmap(
     values,
     position=None,
     orientation="sagittal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
@@ -100,7 +100,7 @@ Once happy with the position of the slicing planes, creating a visualization is 
 
 ```python
 
-bgh.heatmap(
+bgh.Heatmap(
     values,
     position=(
         8000,
