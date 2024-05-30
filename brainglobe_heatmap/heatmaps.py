@@ -262,5 +262,6 @@ class Heatmap:
 
         if ax is None:
             plt.show()
-
+            return f
+            
         return ax
