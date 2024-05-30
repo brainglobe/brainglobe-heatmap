@@ -191,7 +191,9 @@ class Heatmap:
 
         if ax is None:
             f, ax = plt.subplots(figsize=(9, 9))
+            internal_ax = True
         else:
+            internal_ax = False
             f = plt.gcf()
 
         for r, coords in projected.items():
@@ -260,7 +262,7 @@ class Heatmap:
         if show_legend:
             ax.legend()
 
-        if ax is None:
+        if internal_ax is True:
             plt.show()
             return f
 
