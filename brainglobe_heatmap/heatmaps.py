@@ -173,8 +173,8 @@ class Heatmap:
     def plot(
         self,
         show_legend: bool = False,
-        xlabel: str = "??m",
-        ylabel: str = "??m",
+        xlabel: str = "µm",
+        ylabel: str = "µm",
         hide_axes: bool = False,
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
