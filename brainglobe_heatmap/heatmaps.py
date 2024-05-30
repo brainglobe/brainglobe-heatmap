@@ -255,6 +255,6 @@ class Heatmap:
 
         if show_legend:
             ax.legend()
-        #plt.show()
+        # plt.show()
 
         return ax
