@@ -179,6 +179,7 @@ class Heatmap:
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
         ax: Optional[plt.Axes] = None,
+        show_cbar: bool = True,
         **kwargs,
     ) -> plt.Figure:
         """
@@ -206,30 +207,31 @@ class Heatmap:
                 alpha=0.3 if name == "root" else None,
             )
 
-        # make colorbar
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
-
-        # cmap = mpl.cm.cool
-        norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-        if self.label_regions is True:
-            cbar = f.colorbar(
-                mpl.cm.ScalarMappable(
-                    norm=None,
-                    cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
-                ),
-                cax=cax,
-            )
-        else:
-            cbar = f.colorbar(
-                mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
-            )
-
-        if cbar_label is not None:
-            cbar.set_label(cbar_label)
-
-        if self.label_regions is True:
-            cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
+        if show_cbar:
+            # make colorbar
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+    
+            # cmap = mpl.cm.cool
+            norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+            if self.label_regions is True:
+                cbar = f.colorbar(
+                    mpl.cm.ScalarMappable(
+                        norm=None,
+                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
+                    ),
+                    cax=cax,
+                )
+            else:
+                cbar = f.colorbar(
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
+    
+            if cbar_label is not None:
+                cbar.set_label(cbar_label)
+    
+            if self.label_regions is True:
+                cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
 
         # style axes
         ax.invert_yaxis()
