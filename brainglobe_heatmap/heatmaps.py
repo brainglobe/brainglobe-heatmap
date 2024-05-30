@@ -211,7 +211,7 @@ class Heatmap:
             # make colorbar
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
-    
+
             # cmap = mpl.cm.cool
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             if self.label_regions is True:
@@ -226,12 +226,14 @@ class Heatmap:
                 cbar = f.colorbar(
                     mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
                 )
-    
+
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
-    
+
             if self.label_regions is True:
-                cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
+                cbar.ax.set_yticklabels(
+                    [r.strip() for r in self.values.keys()]
+                )
 
         # style axes
         ax.invert_yaxis()
