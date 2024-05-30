@@ -259,7 +259,7 @@ class Heatmap:
 
         if show_legend:
             ax.legend()
-        
+
         if ax is None:
             plt.show()
 
