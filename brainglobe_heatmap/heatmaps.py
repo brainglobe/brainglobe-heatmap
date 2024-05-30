@@ -189,7 +189,7 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        if ax == None:
+        if ax is None:
             f, ax = plt.subplots(figsize=(9, 9))
         else:
             f = plt.gcf()
