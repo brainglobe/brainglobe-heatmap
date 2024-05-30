@@ -178,7 +178,7 @@ class Heatmap:
         hide_axes: bool = False,
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
-        ax: Optional[plt.Axes] = None,,
+        ax: Optional[plt.Axes] = None,
         **kwargs,
     ) -> plt.Figure:
         """
