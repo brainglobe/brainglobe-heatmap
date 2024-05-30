@@ -173,11 +173,12 @@ class Heatmap:
     def plot(
         self,
         show_legend: bool = False,
-        xlabel: str = "μm",
-        ylabel: str = "μm",
+        xlabel: str = "??m",
+        ylabel: str = "??m",
         hide_axes: bool = False,
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
+        ax: Optional[plt.Axes] = None,,
         **kwargs,
     ) -> plt.Figure:
         """
@@ -187,7 +188,11 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        f, ax = plt.subplots(figsize=(9, 9))
+        if ax == None:
+            f, ax = plt.subplots(figsize=(9, 9))
+        else:
+            f = plt.gcf()
+
         for r, coords in projected.items():
             name, segment = r.split("_segment_")
             ax.fill(
@@ -250,6 +255,6 @@ class Heatmap:
 
         if show_legend:
             ax.legend()
-        plt.show()
+        #plt.show()
 
-        return f
+        return ax
