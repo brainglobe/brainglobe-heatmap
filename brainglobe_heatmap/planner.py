@@ -91,13 +91,16 @@ class plan(Heatmap):
             (self.slicer.plane0, self.slicer.plane1),
             (blue_dark, pink_dark),
             (0.8, 0.3),
+            strict=False,
         ):
             plane_mesh = plane.to_mesh(self.scene.root)
             plane_mesh.alpha(alpha).color(color)
 
             self.scene.add(plane_mesh, transform=False)
             for vector, v_color in zip(
-                (plane.normal, plane.u, plane.v), (color, red_dark, green_dark)
+                (plane.normal, plane.u, plane.v),
+                (color, red_dark, green_dark),
+                strict=False,
             ):
                 self.scene.add(
                     Arrow(
