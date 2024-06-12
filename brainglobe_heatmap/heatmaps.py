@@ -162,7 +162,7 @@ class Heatmap:
             camera = {
                 "pos": com - self.orientation * 2 * np.linalg.norm(com),
                 "viewup": (0, -1, 0),
-                "clippingRange": (19531, 40903),
+                "clipping_range": (19531, 40903),
             }
 
         self.scene.render(
