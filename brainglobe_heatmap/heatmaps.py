@@ -173,11 +173,13 @@ class Heatmap:
     def plot(
         self,
         show_legend: bool = False,
-        xlabel: str = "μm",
-        ylabel: str = "μm",
+        xlabel: str = "µm",
+        ylabel: str = "µm",
         hide_axes: bool = False,
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
+        ax: Optional[plt.Axes] = None,
+        show_cbar: bool = True,
         **kwargs,
     ) -> plt.Figure:
         """
@@ -187,7 +189,13 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        f, ax = plt.subplots(figsize=(9, 9))
+        if ax is None:
+            f, ax = plt.subplots(figsize=(9, 9))
+            internal_ax = True
+        else:
+            internal_ax = False
+            f = plt.gcf()
+
         for r, coords in projected.items():
             name, segment = r.split("_segment_")
             ax.fill(
@@ -201,30 +209,33 @@ class Heatmap:
                 alpha=0.3 if name == "root" else None,
             )
 
-        # make colorbar
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
+        if show_cbar:
+            # make colorbar
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
 
-        # cmap = mpl.cm.cool
-        norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-        if self.label_regions is True:
-            cbar = f.colorbar(
-                mpl.cm.ScalarMappable(
-                    norm=None,
-                    cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
-                ),
-                cax=cax,
-            )
-        else:
-            cbar = f.colorbar(
-                mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
-            )
+            # cmap = mpl.cm.cool
+            norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+            if self.label_regions is True:
+                cbar = f.colorbar(
+                    mpl.cm.ScalarMappable(
+                        norm=None,
+                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
+                    ),
+                    cax=cax,
+                )
+            else:
+                cbar = f.colorbar(
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
 
-        if cbar_label is not None:
-            cbar.set_label(cbar_label)
+            if cbar_label is not None:
+                cbar.set_label(cbar_label)
 
-        if self.label_regions is True:
-            cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
+            if self.label_regions is True:
+                cbar.ax.set_yticklabels(
+                    [r.strip() for r in self.values.keys()]
+                )
 
         # style axes
         ax.invert_yaxis()
@@ -250,6 +261,9 @@ class Heatmap:
 
         if show_legend:
             ax.legend()
-        plt.show()
 
-        return f
+        if internal_ax is True:
+            plt.show()
+            return f
+
+        return ax
