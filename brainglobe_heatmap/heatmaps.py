@@ -134,7 +134,7 @@ class Heatmap:
             view = self.plot(**kwargs)
         return view
 
-    def render(self, **kwargs) -> Scene:
+    def render(self, camera=None, **kwargs) -> Scene:
         """
         Renders the hetamap visualization as a 3D scene in brainrender.
         """
@@ -148,22 +148,23 @@ class Heatmap:
                 0
             ].color(color)
 
-        # set camera position and render
-        if isinstance(self.orientation, str):
-            if self.orientation == "sagittal":
-                camera = cameras.sagittal_camera2
-            elif self.orientation == "horizontal":
-                camera = "top"
+        if camera is None:
+            # set camera position and render
+            if isinstance(self.orientation, str):
+                if self.orientation == "sagittal":
+                    camera = cameras.sagittal_camera2
+                elif self.orientation == "horizontal":
+                    camera = "top"
+                else:
+                    camera = self.orientation
             else:
-                camera = self.orientation
-        else:
-            self.orientation = np.array(self.orientation)
-            com = self.slicer.plane0.center_of_mass()
-            camera = {
-                "pos": com - self.orientation * 2 * np.linalg.norm(com),
-                "viewup": (0, -1, 0),
-                "clipping_range": (19531, 40903),
-            }
+                self.orientation = np.array(self.orientation)
+                com = self.slicer.plane0.center_of_mass()
+                camera = {
+                    "pos": com - self.orientation * 2 * np.linalg.norm(com),
+                    "viewup": (0, -1, 0),
+                    "clipping_range": (19531, 40903),
+                }
 
         self.scene.render(
             camera=camera, interactive=self.interactive, zoom=self.zoom
