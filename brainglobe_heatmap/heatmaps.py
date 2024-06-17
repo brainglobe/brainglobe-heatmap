@@ -134,9 +134,19 @@ class Heatmap:
             view = self.plot(**kwargs)
         return view
 
-    def render(self, camera=None, **kwargs) -> Scene:
+    def render(self, camera=None) -> Scene:
         """
-        Renders the hetamap visualization as a 3D scene in brainrender.
+        Renders the heatmap visualization as a 3D scene in brainrender.
+
+        Parameters:
+        ----------
+        camera : str or dict, optional
+            The `brainrender` camera to render the scene.
+            If not provided, `self.orientation` is used.
+        Returns:
+        -------
+        scene : Scene
+            The rendered 3D scene.
         """
 
         # set brain regions colors
