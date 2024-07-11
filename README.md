@@ -147,6 +147,9 @@ coordinates = bgh.get_plane_coordinates(
 `brainglobe-heatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `brainglobe-heatmap`'s functionality is compatible with any of the atlases supported by the atlas API. `bgh.heatmap`, `bgh.planner` and `bgh.get_plane_coordinates` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
 For more information see the API's [documentation](https://brainglobe.info/documentation/brainglobe-atlasapi/index.html).
 
+## Seeking help or contributing
+We are always happy to help users of our tools, and welcome any contributions. If you would like to get in contact with us for any reason, please see the [contact page of our website](https://brainglobe.info/contact.html).
+
 ## Citing `brainglobe-heatmap`
 If you use `brainglobe-heatmap` in your work, please cite it as:
 
@@ -175,7 +178,3 @@ year = {2021}
 }
 
 ```
-
-## Contributing
-
-Contributions to brainrender are more than welcome. Please see the [developers guide](https://brainglobe.info/community/developers/index.html).
