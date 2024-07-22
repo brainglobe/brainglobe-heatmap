@@ -23,7 +23,7 @@ f = bgh.Heatmap(
     values,
     position=1000,
     # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-    orientation="sagittal",
+    orientation="frontal",
     thickness=1000,
     atlas_name="allen_cord_20um",
     format="2D",
