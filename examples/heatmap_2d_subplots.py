@@ -29,7 +29,7 @@ for distance in range(7500, 10500, 500):
     scenes.append(scene)
 
 fig, axs = plt.subplots(3, 2, figsize=(18, 12))
-for scene, ax in zip(scenes, axs.flatten()):
+for scene, ax in zip(scenes, axs.flatten(), strict=False):
     scene.plot_subplot(fig=fig, ax=ax, show_cbar=True, hide_axes=False)
 
 plt.tight_layout()
