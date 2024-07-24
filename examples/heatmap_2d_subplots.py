@@ -13,6 +13,9 @@ data_dict = {
     "VISam": 1.0,
 }
 
+# Create a list of scenes to plot
+# Note: it's important to keep reference to the scenes to avoid a
+# segmentation fault
 scenes = []
 for distance in range(7500, 10500, 500):
     scene = bgh.Heatmap(
@@ -28,6 +31,7 @@ for distance in range(7500, 10500, 500):
     )
     scenes.append(scene)
 
+# Create a figure with 6 subplots and plot the scenes
 fig, axs = plt.subplots(3, 2, figsize=(18, 12))
 for scene, ax in zip(scenes, axs.flatten()):
     scene.plot_subplot(fig=fig, ax=ax, show_cbar=True, hide_axes=False)
