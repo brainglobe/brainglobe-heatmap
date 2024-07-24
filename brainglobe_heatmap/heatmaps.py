@@ -52,7 +52,7 @@ class Heatmap:
     def __init__(
         self,
         values: Dict,
-        position: Union[list, tuple, np.ndarray],
+        position: Union[list, tuple, np.ndarray, float],
         orientation: Union[str, tuple] = "frontal",
         hemisphere: str = "both",
         title: Optional[str] = None,
