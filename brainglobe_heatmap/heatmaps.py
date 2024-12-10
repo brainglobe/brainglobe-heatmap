@@ -66,6 +66,7 @@ class Heatmap:
         zoom: Optional[float] = None,
         atlas_name: Optional[str] = None,
         label_regions: Optional[bool] = False,
+        check_latest: bool = True,
         **kwargs,
     ):
         # store arguments
@@ -83,6 +84,7 @@ class Heatmap:
             atlas_name=atlas_name,
             title=title,
             title_color=grey_darker,
+            check_latest=check_latest,
             **kwargs,
         )
 
