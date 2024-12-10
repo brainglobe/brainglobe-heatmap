@@ -147,6 +147,7 @@ def get_structures_slice_coords(
     position: Union[list, tuple, np.ndarray],
     orientation: Union[str, tuple] = "frontal",
     atlas_name: Optional[str] = None,
+    check_latest: bool = True,
 ) -> Dict[str, List[np.ndarray]]:
     """
     Given a list of region name and a set of plane parameters,
@@ -154,7 +155,7 @@ def get_structures_slice_coords(
     intersection in the plane's coordinates
     """
 
-    scene = Scene(atlas_name=atlas_name)
+    scene = Scene(atlas_name=atlas_name, check_latest=check_latest)
     if len(regions) == 1:
         regions_actors = [scene.add_brain_region(*regions)]
     else:
