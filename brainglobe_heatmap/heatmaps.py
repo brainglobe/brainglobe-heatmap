@@ -69,6 +69,50 @@ class Heatmap:
         check_latest: bool = True,
         **kwargs,
     ):
+        """
+        Creates a heatmap visualization of the provided values in 3D or 2D
+        using brainrender or matplotlib in the specified atlas.
+
+        Parameters
+        ----------
+        values : dict
+            Dictionary with brain regions acronyms as keys and
+            magnitudes as the values.
+        position : list, tuple, np.ndarray, float
+            Position of the plane in the atlas.
+        orientation : str or tuple, optional
+            Orientation of the plane in the atlas. Either, "frontal",
+            "sagittal", "horizontal" or a tuple with the normal vector.
+            Default is "frontal".
+        hemisphere : str, optional
+            Hemisphere to display the heatmap. Default is "both".
+        title : str, optional
+            Title of the heatmap. Default is None.
+        cmap : str, optional
+            Colormap to use for the heatmap. Default is "Reds".
+        vmin : float, optional
+            Minimum value for the colormap. Default is None.
+        vmax : float, optional
+            Maximum value for the colormap. Default is None.
+        format : str, optional
+            Format of the heatmap visualization.
+            "3D" for brainrender or "2D" for matplotlib. Default is "3D".
+        thickness : float, optional
+            Thickness of the slicing plane in the brainrender scene.
+            Default is 10.
+        interactive : bool, optional
+            If True, the brainrender scene is interactive. Default is True.
+        zoom : float, optional
+            Zoom level for the brainrender scene. Default is None.
+        atlas_name : str, optional
+            Name of the atlas to use for the heatmap.
+            If None allen_mouse_25um is used. Default is None.
+        label_regions : bool, optional
+            If True, labels the regions on the colorbar (only valid in 2D).
+            Default is False.
+        check_latest : bool, optional
+            Check for the latest version of the atlas. Default is True.
+        """
         # store arguments
         self.values = values
         self.format = format
