@@ -36,4 +36,4 @@ repos:
       hooks:
           - id: check-manifest
             args: [--no-build-isolation]
-            additional_dependencies: [setuptools-scm]
+            additional_dependencies: [setuptools-scm, wheel]
