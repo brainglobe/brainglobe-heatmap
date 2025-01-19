@@ -75,7 +75,7 @@ class plan(Heatmap):
         print_plane("Plane 0", self.slicer.plane0, blue_dark)
         print_plane("Plane 1", self.slicer.plane1, pink_dark)
 
-    def show(self):
+    def show(self, both=True):
         """
         Renders the hetamap visualization as a 3D scene in brainrender.
         """
@@ -88,7 +88,11 @@ class plan(Heatmap):
 
         # add slicing planes and their norms
         for plane, color, alpha in zip(
-            (self.slicer.plane0, self.slicer.plane1),
+            (
+                (self.slicer.plane0, self.slicer.plane1)
+                if both
+                else (self.slicer.plane0,)
+            ),
             (blue_dark, pink_dark),
             (0.8, 0.3),
             strict=False,
@@ -96,7 +100,7 @@ class plan(Heatmap):
             plane_mesh = plane.to_mesh(self.scene.root)
             plane_mesh.alpha(alpha).color(color)
 
-            self.scene.add(plane_mesh, transform=False)
+            self.scene.add(plane_mesh)
             for vector, v_color in zip(
                 (plane.normal, plane.u, plane.v),
                 (color, red_dark, green_dark),
@@ -109,12 +113,12 @@ class plan(Heatmap):
                         + np.array(vector) * self.arrow_scale,
                         c=v_color,
                     ),
-                    transform=False,
+                    classes=plane_mesh.br_class,
                 )
 
             self.scene.add(
                 Sphere(plane_mesh.center, r=plane_mesh.width / 125, c="k"),
-                transform=False,
+                classes=plane_mesh.br_class,
             )
 
         self.scene.render(interactive=self.interactive, zoom=self.zoom)
