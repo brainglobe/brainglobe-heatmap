@@ -51,7 +51,6 @@ class Slicer:
                 )
 
         position = np.array(position)
-        position[2] = -position[2]
 
         if isinstance(orientation, str):
             axidx = get_ax_idx(orientation)
