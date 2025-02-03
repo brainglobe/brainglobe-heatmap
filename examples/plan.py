@@ -1,6 +1,6 @@
 """
-    This example shows how to use the `plan` functionality to visualize the
-    position of the planes used to 'slice' the brain for heatmap visualization.
+This example shows how to use the `plan` functionality to visualize the
+position of the planes used to 'slice' the brain for heatmap visualization.
 """
 
 import brainglobe_heatmap as bgh
