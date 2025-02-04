@@ -1,5 +1,5 @@
 """
-    This example shows how to use visualize a heatmap in 2D
+This example shows how to use visualize a heatmap in 2D
 """
 
 import brainglobe_heatmap as bgh

@@ -1,7 +1,7 @@
 """
-    This example shows how to use brainglobe_heatmap
-    to get the contours of 'sliced'
-    brain regions to overlay them over histological data.
+This example shows how to use brainglobe_heatmap
+to get the contours of 'sliced'
+brain regions to overlay them over histological data.
 """
 
 import matplotlib.patheffects as path_effects

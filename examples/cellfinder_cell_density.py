@@ -1,7 +1,7 @@
 """
-    This example shows how to go from cell counts per region
-    (e.g. as outputted by cellfinder) to a plot showing the
-    density (count/volume) of cells in each brain region
+This example shows how to go from cell counts per region
+(e.g. as outputted by cellfinder) to a plot showing the
+density (count/volume) of cells in each brain region
 """
 
 from pathlib import Path
