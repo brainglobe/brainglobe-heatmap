@@ -50,11 +50,11 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     return vmax, vmin
 
 
-def find_optimal_label_position(
+def find_annotation_position_inside_polygon(
     polygon_vertices: np.ndarray, precision: float = 1.0
 ) -> Tuple[float, float]:
     """
-    Find the optimal position for placing a label inside a polygon.
+    Find the optimal position for placing an annotation inside a polygon.
     Known as the pole of inaccessibility, the point inside the polygon that is
     farthest from any of its edges.
 
@@ -80,7 +80,7 @@ def find_optimal_label_position(
     Returns
     -------
     tuple
-        The (x, y) coordinates of the optimal label position.
+        The (x, y) coordinates of the optimal annotation position.
     """
 
     def calculate_point_to_edges_distance(
@@ -611,7 +611,9 @@ class Heatmap:
                     )
                     ax.annotate(
                         display_text,
-                        xy=find_optimal_label_position(coords, precision=0.1),
+                        xy=find_annotation_position_inside_polygon(
+                            coords, precision=0.1
+                        ),
                         ha="center",
                         va="center",
                         **(
