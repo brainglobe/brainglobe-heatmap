@@ -1,6 +1,8 @@
+from heapq import heappop, heappush
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib as mpl
+import matplotlib.path as pltpath
 import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
@@ -48,6 +50,187 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     return vmax, vmin
 
 
+def find_optimal_label_position(
+    polygon_vertices: np.ndarray, precision: float = 1.0
+) -> Tuple[float, float]:
+    """
+    Find the optimal position for placing a label inside a polygon.
+    Known as the pole of inaccessibility, the point inside the polygon that is
+    farthest from any of its edges.
+
+    The algorithm works as follows:
+      1. Determine a bounding box around the polygon and generate an
+         initial coarse grid of candidate points within that box.
+      2. For each candidate point, compute the distance to the
+         closest polygon edge if the point is inside the polygon.
+      3. Use a priority queue (max-heap) that have the
+         greatest potential to contain a point with a larger distance.
+      4. Repeatedly extract the cell with the
+         largest potential distance from the queue:
+      5. Continue until no cells can offer an improvement within precision.
+
+    Parameters
+    ----------
+    polygon_vertices : np.ndarray of shape (N, 2)
+        Array of (x, y) coordinates defining the polygon vertices.
+    precision : float, optional
+        The precision tolerance for the result (default: 1.0).
+        A smaller value yields higher accuracy.
+
+    Returns
+    -------
+    tuple
+        The (x, y) coordinates of the optimal label position.
+    """
+
+    def calculate_point_to_edges_distance(
+        px: float, py: float, vertices: np.ndarray
+    ) -> float:
+        """
+        Calculate the minimum distance from a point to the edges of a polygon.
+
+        Returns
+        -------
+        float
+            Minimum distance from (x, y) to any edge if inside the polygon,
+            float('-inf') if outside the polygon.
+        """
+        point = np.array([px, py])
+
+        if not polygon.contains_point((px, py)):
+            return float("-inf")
+
+        segments = np.vstack((vertices, vertices[0]))
+        segment_starts = segments[:-1]
+        segment_ends = segments[1:]
+
+        edges = segment_ends - segment_starts
+        lengths_sq = np.sum(edges**2, axis=1)
+        valid_edges = lengths_sq > 0
+        min_dist = float("inf")
+
+        # find the minimum distance from a point to a line segment
+        if np.any(valid_edges):
+            segment_ratio = (
+                np.sum(
+                    (point - segment_starts[valid_edges]) * edges[valid_edges],
+                    axis=1,
+                )
+                / lengths_sq[valid_edges]
+            )
+            segment_ratio = np.clip(segment_ratio, 0, 1)
+
+            closest = (
+                segment_starts[valid_edges]
+                + (edges[valid_edges].T * segment_ratio).T
+            )
+            distances = np.sqrt(np.sum((point - closest) ** 2, axis=1))
+            min_dist = min(min_dist, np.min(distances))
+
+        if np.any(~valid_edges):
+            closest = segment_starts[~valid_edges]
+            vertex_distances = np.sqrt(np.sum((point - closest) ** 2, axis=1))
+            if len(vertex_distances) > 0:
+                min_dist = min(min_dist, np.min(vertex_distances))
+
+        return min_dist
+
+    if not isinstance(polygon_vertices, np.ndarray):
+        polygon_vertices = np.asarray(polygon_vertices)
+
+    polygon = pltpath.Path(polygon_vertices)
+
+    # determine the bounding box of the polygon
+    minx, miny = np.min(polygon_vertices, axis=0)
+    maxx, maxy = np.max(polygon_vertices, axis=0)
+    width = maxx - minx
+    height = maxy - miny
+
+    # bigger divisor makes initial grid denser
+    # can help on very narrow polygons
+    cell_size = min(width, height) / 4
+    cell_radius = cell_size / 2
+
+    # create an initial grid of sample points throughout the bounding box
+    x_coords = np.arange(minx + cell_radius, maxx, cell_size)
+    y_coords = np.arange(miny + cell_radius, maxy, cell_size)
+    grid_x, grid_y = np.meshgrid(x_coords, y_coords)
+    points = np.column_stack((grid_x.ravel(), grid_y.ravel()))
+
+    # determine which points of the initial grid lie inside the polygon
+    inside_mask = polygon.contains_points(points)
+    inside_points = points[inside_mask]
+
+    cell_queue: List[Tuple[float, float, float, float, float]] = []
+    for center_x, center_y in inside_points:
+        distance = calculate_point_to_edges_distance(
+            center_x, center_y, polygon_vertices
+        )
+        max_potential = distance + cell_radius * np.sqrt(2)
+        # simulate max-heap behavior storing negative values
+        heappush(
+            cell_queue,
+            (-max_potential, distance, center_x, center_y, cell_radius),
+        )
+
+    # start with center of the bounding box
+    bbox_x = minx + width / 2
+    bbox_y = miny + height / 2
+    bbox_distance = calculate_point_to_edges_distance(
+        bbox_x, bbox_y, polygon_vertices
+    )
+    best_distance = bbox_distance
+    best_x, best_y = bbox_x, bbox_y
+
+    while cell_queue:
+        max_potential, distance, x, y, cell_radius = heappop(cell_queue)
+        max_potential = -max_potential
+
+        if max_potential - best_distance <= precision:
+            break
+
+        if distance > best_distance:
+            best_distance = distance
+            best_x = x
+            best_y = y
+
+        # only subdivide further if the cell is large enough
+        if cell_radius > precision / 2:
+            new_cell_radius = cell_radius / 2
+            # four new sub-cells
+            for dx, dy in [
+                (-new_cell_radius, -new_cell_radius),
+                (new_cell_radius, -new_cell_radius),
+                (-new_cell_radius, new_cell_radius),
+                (new_cell_radius, new_cell_radius),
+            ]:
+                new_x = x + dx
+                new_y = y + dy
+
+                # compute distance for the center of the new sub-cell
+                new_distance = calculate_point_to_edges_distance(
+                    new_x, new_y, polygon_vertices
+                )
+                if new_distance != float("-inf"):
+                    new_max_potential = (
+                        new_distance + new_cell_radius * np.sqrt(2)
+                    )
+                    # push into the queue if potentially can beat best_distance
+                    if new_max_potential > best_distance + precision:
+                        heappush(
+                            cell_queue,
+                            (
+                                -new_max_potential,
+                                new_distance,
+                                new_x,
+                                new_y,
+                                new_cell_radius,
+                            ),
+                        )
+
+    return best_x, best_y
+
+
 class Heatmap:
     def __init__(
         self,
@@ -66,6 +249,8 @@ class Heatmap:
         zoom: Optional[float] = None,
         atlas_name: Optional[str] = None,
         label_regions: Optional[bool] = False,
+        annotate_regions: Optional[Union[bool, List[str], Dict]] = False,
+        annotate_text_options: Optional[Dict] = None,
         check_latest: bool = True,
         **kwargs,
     ):
@@ -110,6 +295,16 @@ class Heatmap:
         label_regions : bool, optional
             If True, labels the regions on the colorbar (only valid in 2D).
             Default is False.
+        annotate_regions :
+            bool, List[str], Dict[str, Union[str, float, int]], optional
+            Controls region annotation in 2D format.
+            If True, annotates all regions with their names.
+            If a list, annotates only the specified regions.
+            If a dict, uses custom text/values for annotations.
+            Default is False.
+        annotate_text_options : dict, optional
+            Options for customizing region annotations text.
+            Default is None
         check_latest : bool, optional
             Check for the latest version of the atlas. Default is True.
         """
@@ -122,6 +317,8 @@ class Heatmap:
         self.title = title
         self.cmap = cmap
         self.label_regions = label_regions
+        self.annotate_regions = annotate_regions
+        self.annotate_text_options = annotate_text_options
 
         # create a scene
         self.scene = Scene(
@@ -390,6 +587,39 @@ class Heatmap:
                 zorder=-1 if name == "root" else None,
                 alpha=0.3 if name == "root" else None,
             )
+
+            should_annotate = (
+                (
+                    isinstance(self.annotate_regions, bool)
+                    and self.annotate_regions
+                )
+                or (
+                    isinstance(self.annotate_regions, list)
+                    and name in self.annotate_regions
+                )
+                or (
+                    isinstance(self.annotate_regions, dict)
+                    and name in self.annotate_regions.keys()
+                )
+            )
+            if should_annotate and self.format == "2D":
+                if name != "root":
+                    display_text = (
+                        str(self.annotate_regions[name])
+                        if isinstance(self.annotate_regions, dict)
+                        else name
+                    )
+                    ax.annotate(
+                        display_text,
+                        xy=find_optimal_label_position(coords, precision=0.1),
+                        ha="center",
+                        va="center",
+                        **(
+                            self.annotate_text_options
+                            if self.annotate_text_options is not None
+                            else {}
+                        ),
+                    )
 
         if show_cbar:
             # make colorbar
