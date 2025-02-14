@@ -46,7 +46,7 @@ for distance in range(7500, 10500, 500):
         vmin=0,
         vmax=1,
         label_regions=False,
-        annotate_regions=True,
+        annotate_regions=False,
         annotate_text_options=annotate_text_options,
     )
     scenes.append(scene)

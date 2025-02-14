@@ -50,6 +50,6 @@ f = bgh.Heatmap(
     vmin=-5,
     vmax=3,
     format="2D",
-    annotate_regions=True,
+    annotate_regions=False,
     annotate_text_options=annotate_text_options,
 ).show()
