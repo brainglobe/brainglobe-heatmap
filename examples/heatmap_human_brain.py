@@ -21,7 +21,7 @@ annotate_regions_custom = values
 
 annotate_text_options = dict(
     fontweight="normal",
-    fontsize=8,
+    fontsize=10,
     rotation="horizontal",  # float or {'vertical', 'horizontal'}
     color="black",
     alpha=1,  # float in range 0-1
@@ -35,4 +35,4 @@ scene = bgh.Heatmap(
     format="2D",
     annotate_regions=False,
     annotate_text_options=annotate_text_options,
-).show(filename="2")
+).show()

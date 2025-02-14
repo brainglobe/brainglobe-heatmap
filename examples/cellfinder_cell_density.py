@@ -54,10 +54,10 @@ annotate_regions_custom = dict(RSP="a1", VIS=0.00)
 
 annotate_text_options = dict(
     fontweight="normal",
-    fontsize=8,
-    rotation="horizontal",
+    fontsize=10,
+    rotation="horizontal",  # float or {'vertical', 'horizontal'}
     color="black",
-    alpha=1,
+    alpha=1,  # float in range 0-1
 )
 
 f = bgh.Heatmap(
