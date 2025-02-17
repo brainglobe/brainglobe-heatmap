@@ -2,7 +2,7 @@ from heapq import heappop, heappush
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib as mpl
-import matplotlib.path as pltpath
+import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
@@ -92,13 +92,9 @@ def find_annotation_position_inside_polygon(
         Returns
         -------
         float
-            Minimum distance from (x, y) to any edge if inside the polygon,
-            float('-inf') if outside the polygon.
+            Minimum distance from (x, y) to any edge.
         """
         point = np.array([px, py])
-
-        if not polygon.contains_point((px, py)):
-            return float("-inf")
 
         segments = np.vstack((vertices, vertices[0]))
         segment_starts = segments[:-1]
@@ -138,13 +134,11 @@ def find_annotation_position_inside_polygon(
     if not isinstance(polygon_vertices, np.ndarray):
         polygon_vertices = np.asarray(polygon_vertices)
 
-    polygon = pltpath.Path(polygon_vertices)
-
     # determine the bounding box of the polygon
-    minx, miny = np.min(polygon_vertices, axis=0)
-    maxx, maxy = np.max(polygon_vertices, axis=0)
-    width = maxx - minx
-    height = maxy - miny
+    min_x, min_y = np.min(polygon_vertices, axis=0)
+    max_x, max_y = np.max(polygon_vertices, axis=0)
+    width = max_x - min_x
+    height = max_y - min_y
 
     # bigger divisor makes initial grid denser
     # can help on very narrow polygons
@@ -152,20 +146,24 @@ def find_annotation_position_inside_polygon(
     cell_radius = cell_size / 2
 
     # create an initial grid of sample points throughout the bounding box
-    x_coords = np.arange(minx + cell_radius, maxx, cell_size)
-    y_coords = np.arange(miny + cell_radius, maxy, cell_size)
+    x_coords = np.arange(min_x + cell_radius, max_x, cell_size)
+    y_coords = np.arange(min_y + cell_radius, max_y, cell_size)
     grid_x, grid_y = np.meshgrid(x_coords, y_coords)
     points = np.column_stack((grid_x.ravel(), grid_y.ravel()))
 
     # determine which points of the initial grid lie inside the polygon
-    inside_mask = polygon.contains_points(points)
+    mpath_polygon = mpath.Path(polygon_vertices)
+    inside_mask = mpath_polygon.contains_points(points=points)
     inside_points = points[inside_mask]
 
     cell_queue: List[Tuple[float, float, float, float, float]] = []
     for center_x, center_y in inside_points:
-        distance = calculate_point_to_edges_distance(
-            center_x, center_y, polygon_vertices
-        )
+        if not mpath_polygon.contains_point(point=(center_x, center_y)):
+            distance = float("-inf")
+        else:
+            distance = calculate_point_to_edges_distance(
+                center_x, center_y, polygon_vertices
+            )
         max_potential = distance + cell_radius * np.sqrt(2)
         # simulate max-heap behavior storing negative values
         heappush(
@@ -174,8 +172,8 @@ def find_annotation_position_inside_polygon(
         )
 
     # start with center of the bounding box
-    bbox_x = minx + width / 2
-    bbox_y = miny + height / 2
+    bbox_x = min_x + width / 2
+    bbox_y = min_y + height / 2
     bbox_distance = calculate_point_to_edges_distance(
         bbox_x, bbox_y, polygon_vertices
     )
