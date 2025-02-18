@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -353,18 +353,61 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
+        root_segments = []
+        region_areas: Dict[str, Dict[str, Any]] = {}
         for r, coords in projected.items():
+            name, segment = r.split("_segment_")
+            if name == "root":
+                root_segments.append((r, coords))
+                continue
+
+            x = coords[:, 0]
+            y = coords[:, 1]
+            area = 0.5 * np.abs(
+                np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
+            )
+
+            if name in region_areas:
+                region_areas[name]["area"] += area
+                region_areas[name]["segments"].append((r, coords))
+            else:
+                region_areas[name] = {"area": area, "segments": [(r, coords)]}
+
+        # Sort regions by area (largest first)
+        sorted_regions_by_area = sorted(
+            region_areas.keys(),
+            key=lambda r: region_areas[r]["area"],
+            reverse=True,
+        )
+
+        # root
+        for r, coords in root_segments:
             name, segment = r.split("_segment_")
             ax.fill(
                 coords[:, 0],
                 coords[:, 1],
                 color=self.colors[name],
-                label=name if segment == "0" and name != "root" else None,
+                label=None,
                 lw=1,
                 ec="k",
-                zorder=-1 if name == "root" else None,
-                alpha=0.3 if name == "root" else None,
+                zorder=-1,
+                alpha=0.3,
             )
+
+        # regions
+        for region_name in sorted_regions_by_area:
+            for r, coords in region_areas[region_name]["segments"]:
+                name, segment = r.split("_segment_")
+                ax.fill(
+                    coords[:, 0],
+                    coords[:, 1],
+                    color=self.colors[name],
+                    label=name if segment == "0" else None,
+                    lw=1,
+                    ec="k",
+                    zorder=None,
+                    alpha=None,
+                )
 
         if show_cbar:
             # make colorbar
