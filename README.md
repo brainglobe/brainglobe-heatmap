@@ -1,148 +1,90 @@
 # brainglobe-heatmap
-`brainglobe-heatmap` allows you to create heatmaps, mapping scalar values for each brain region (e.g., number of labelled cells in each region) to a color and creating beautiful visualizations in 2D (using [matplotlib](https://matplotlib.org/) or 3D (using [brainrender](https://brainglobe.info/documentation/brainrender/index.html)).
+`brainglobe-heatmap` allows you to create heatmaps, mapping scalar values for each brain region (e.g., number of labelled cells in each region) to a color and creating visualizations in 2D (using [matplotlib](https://matplotlib.org/) or 3D (using [brainrender](https://brainglobe.info/documentation/brainrender/index.html)).
 
-![2D heatmap generated using matplotlib](images/hm_2d.png)
+<img width="947" alt="Hansen_2025_Fig1" src="https://github.com/user-attachments/assets/38e93939-aa3a-4f94-8edf-a6a470260de9" />
 
-**2D heatmap generated using matplotlib**
 
-![3D heatmap generated using brainrender](images/hm_3d.png)
+**2D heatmap generated using matplotlib - adapted from Fig 1. from [Hansen et al (2025)](https://doi.org/10.1101/2025.01.24.634803)**
+
+<img width="700" alt="heatmap_3d" src="https://github.com/user-attachments/assets/06f634aa-351b-4399-b84f-01107805e80e" />
 
 **3D heatmap generated using brainrender**
 
-## Installation
+## Usage
+For full documentation, please see the [BrainGlobe documentation](https://brainglobe.info/documentation/brainglobe-heatmap/index.html). Examples can be found in the [examples](https://github.com/brainglobe/brainglobe-heatmap/tree/main/examples) directory of this repository.
+
+## Quickstart
+### Installation
 `pip install brainglobe-heatmap`
 
-
-## User guide
-The starting point for a heatmap visualization is a `dict` assigning scalar values to a set of brain regions (identified by their acronym).
-For example:
-
+### 2D heatmap
 ```python
+
+import brainglobe_heatmap as bgh
+
 values = dict(  # scalar values for each region
     TH=1,
     RSP=0.2,
     AI=0.4,
     SS=-3,
     MO=2.6,
-    ...
+    PVZ=-4,
+    LZ=-3,
+    VIS=2,
+    AUD=0.3,
+    RHP=-0.2,
+    STR=0.5,
+    CB=0.5,
+    FRP=-1.7,
+    HIP=3,
+    PA=-4,
 )
-```
-
-`brainglobe-heatmap` creates a brainrender 3D `Scene` with the given regions colored according the values in the dictionary.
-Next, to create visualizations like the ones shown above, the three dimensional scene needs to be **sliced** to expose
-the relevant parts.
-This is done by specifying the position and orientation of a `Plane` which cuts through the scene.
-
-![](images/planning_1.png)
-
-The orientation is set by the direction of a *normal vector* specified by the user.
-
-![](images/planning_2.png)
-
-Everything that is on the side opposite where the normal vector will be cut and discarded.
-To keep a section of the 3D brain, two planes with normal vectors facing in opposite directions are used:
-
-![](images/planning_3.png)
-
-and everything in-between the two planes is kept as a slice.
-
-### Slicing plane position
-Finding the right position and orientation to the plane can take some tweaking. `brainglobe-heatmap` provides a `planner` class that makes the process easier by showing the position of the planes and how they intersect with the user provided regions (see image above).
-In `examples/plan.py` there's an example showing how to use the `planner`:
-
-```python
-import brainglobe_heatmap as bgh
 
 
-planner = bgh.plan(
-    values,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),
-    orientation="frontal",  # orientation, or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-    thickness=2000,  # thickness of the slices used for rendering (in microns)
-)
-```
-
-The position of the center of the plane is given by a set of `(x, y, z)` coordinates. The orientation can be specified by a string (`frontal`, `sagittal`, `horizontal`) which will result in a standard orthogonal slice, or by a vector `(x, y, z)` with the orientation along the 3 axes.
-
-Whe using one of the named orientation, you don't need to pass a whole set of `(x, y, z)` coordinates for the plane center. A single value is sufficient as the other two won't affect the plane position:
-
-```python
 f = bgh.Heatmap(
     values,
-    position=1000,
-    orientation="sagittal",
-    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-    thickness=1000,
-    atlas_name="allen_cord_20um",
-    format='2D',
-).show()
-
-```
-
-Also, you can create a slice with a plane centered in the brain by passing `position=None`:
-
-```python
-f = bgh.Heatmap(
-    values,
-    position=None,
-    orientation="sagittal",
-    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-    thickness=1000,
-    atlas_name="mpin_zfish_1um",
-    format='2D',
-    title='zebra fish heatmap'
-).show(xlabel='AP (μm)', ylabel='DV (μm)')
-```
-
-### Visualization
-Once happy with the position of the slicing planes, creating a visualization is as simple as:
-
-```python
-bgh.Heatmap(
-    values,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),
-    orientation="horizontal",
-    # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
-    title="horizontal view",
+    position=5000,
+    orientation="frontal",
     vmin=-5,
     vmax=3,
-    cmap='Reds',
     format="2D",
 ).show()
 ```
-
-Here, `format` specifies if a 2D plot should be made (using `matplotlib`) or a 3D rendering instead (using `brainrender`). The `cmap` parameter specifies the colormap used and `vmin, vmax` the color range.
-
-### Regions coordinates
-You can use `brainglobe-heatmap` to get the coordinates of the 2D 'slices' (in the 2D plane's coordinates system):
-
-
+### 3D heatmap
 ```python
-regions = ['TH', 'RSP', 'AI', 'SS', 'MO', 'PVZ', 'LZ', 'VIS', 'AUD', 'RHP', 'STR', 'CB', 'FRP', 'HIP', 'PA']
 
-coordinates = bgh.get_structures_slice_coords(
-    regions,
-    position=(
-        8000,
-        5000,
-        5000,
-    ),
-    orientation="frontal",  # 'frontal' or 'sagittal', or 'horizontal' or a tuple (x,y,z)
+import brainglobe_heatmap as bgh
+
+values = dict(  # scalar values for each region
+    TH=1,
+    RSP=0.2,
+    AI=0.4,
+    SS=-3,
+    MO=2.6,
+    PVZ=-4,
+    LZ=-3,
+    VIS=2,
+    AUD=0.3,
+    RHP=-0.2,
+    STR=0.5,
+    CB=0.5,
+    FRP=-1.7,
+    HIP=3,
+    PA=-4,
 )
+
+
+scene = bgh.Heatmap(
+    values,
+    position=(8000, 5000, 5000),
+    orientation="frontal",
+    thickness=1000,
+    vmin=-5,
+    vmax=3,
+    format="3D",
+).show()
+
 ```
-
-## Using `brainglobe-heatmap` with other atlases.
-
-`brainglobe-heatmap` uses `brainrender` which, in turn, uses brainglobe's `Atlas API` under the hood. That means that all of `brainglobe-heatmap`'s functionality is compatible with any of the atlases supported by the atlas API. `bgh.Heatmap`, `bgh.planner` and `bgh.get_structures_slice_coords` all accept a `atlas_name` argument, pass the name of the atlas name you'd like to use!
-For more information see the API's [documentation](https://brainglobe.info/documentation/brainglobe-atlasapi/index.html).
 
 ## Seeking help or contributing
 We are always happy to help users of our tools, and welcome any contributions. If you would like to get in contact with us for any reason, please see the [contact page of our website](https://brainglobe.info/contact.html).
