@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Union, cast
+from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -353,71 +353,42 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        root_segments = []
-        region_areas: Dict[
-            str, Dict[str, Union[float, List[Tuple[str, np.ndarray]]]]
-        ] = {}
+        segments: List[Dict[str, Union[str, np.ndarray, float]]] = []
         for r, coords in projected.items():
-            name, segment = r.split("_segment_")
-            if name == "root":
-                root_segments.append((r, coords))
-                continue
-
+            name, segment_nr = r.split("_segment_")
             x = coords[:, 0]
             y = coords[:, 1]
             area = 0.5 * np.abs(
                 np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
             )
 
-            if name in region_areas:
-                region_areas[name]["area"] += area
-                segments = cast(
-                    List[Tuple[str, np.ndarray]],
-                    region_areas[name]["segments"],
-                )
-                segments.append((r, coords))
-            else:
-                region_areas[name] = {"area": area, "segments": [(r, coords)]}
+            segments.append(
+                {
+                    "name": name,
+                    "segment_nr": segment_nr,
+                    "coords": coords,
+                    "area": area,
+                }
+            )
 
-        # Sort regions by area (largest first)
-        sorted_regions_by_area = sorted(
-            region_areas.keys(),
-            key=lambda r: region_areas[r]["area"],
-            reverse=True,
-        )
+        # Sort region segments by area (largest first)
+        segments.sort(key=lambda s: s["area"], reverse=True)
 
-        # root
-        for r, coords in root_segments:
-            name, segment = r.split("_segment_")
+        for segment in segments:
+            name = segment["name"]
+            segment_nr = segment["segment_nr"]
+            coords = segment["coords"]
+
             ax.fill(
                 coords[:, 0],
                 coords[:, 1],
                 color=self.colors[name],
-                label=None,
+                label=name if segment_nr == "0" and name != "root" else None,
                 lw=1,
                 ec="k",
-                zorder=-1,
-                alpha=0.3,
+                zorder=-1 if name == "root" else None,
+                alpha=0.3 if name == "root" else None,
             )
-
-        # regions
-        for region_name in sorted_regions_by_area:
-            segments = cast(
-                List[Tuple[str, np.ndarray]],
-                region_areas[region_name]["segments"],
-            )
-            for r, coords in segments:
-                name, segment = r.split("_segment_")
-                ax.fill(
-                    coords[:, 0],
-                    coords[:, 1],
-                    color=self.colors[name],
-                    label=name if segment == "0" else None,
-                    lw=1,
-                    ec="k",
-                    zorder=None,
-                    alpha=None,
-                )
 
         if show_cbar:
             # make colorbar
