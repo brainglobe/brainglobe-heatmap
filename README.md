@@ -1,3 +1,16 @@
+[![Python Version](https://img.shields.io/pypi/pyversions/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
+[![PyPI](https://img.shields.io/pypi/v/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
+[![Downloads](https://pepy.tech/badge/brainglobe-heatmap)](https://pepy.tech/project/brainglobe-heatmap)
+[![Wheel](https://img.shields.io/pypi/wheel/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
+[![Development Status](https://img.shields.io/pypi/status/brainglobe-heatmap.svg)](https://github.com/brainglobe/brainglobe-heatmap)
+[![Tests](https://img.shields.io/github/actions/workflow/status/brainglobe/brainglobe-heatmap/test_and_deploy.yml?branch=main)](https://github.com/brainglobe/brainglobe-heatmap/actions)
+[![codecov](https://codecov.io/gh/brainglobe/brainglobe-heatmap/branch/main/graph/badge.svg?token=nx1lhNI7ox)](https://codecov.io/gh/brainglobe/brainglobe-heatmap)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Contributions](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](https://brainglobe.info/community/developers/index.html)
+[![Twitter](https://img.shields.io/twitter/follow/brain_globe?style=social)](https://twitter.com/brain_globe)
+
 # brainglobe-heatmap
 `brainglobe-heatmap` allows you to create heatmaps, mapping scalar values for each brain region (e.g., number of labelled cells in each region) to a color and creating visualizations in 2D (using [matplotlib](https://matplotlib.org/) or 3D (using [brainrender](https://brainglobe.info/documentation/brainrender/index.html)).
 
