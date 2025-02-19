@@ -4,7 +4,7 @@
 <img width="947" alt="Hansen_2025_Fig1" src="https://github.com/user-attachments/assets/38e93939-aa3a-4f94-8edf-a6a470260de9" />
 
 
-**2D heatmap generated using matplotlib. Adapted from Fig 1. from [Hansen et al (2025)](https://doi.org/10.1101/2025.01.24.634803)**
+**2D heatmap generated using matplotlib - adapted from Fig 1. from [Hansen et al (2025)](https://doi.org/10.1101/2025.01.24.634803)**
 
 <img width="700" alt="heatmap_3d" src="https://github.com/user-attachments/assets/06f634aa-351b-4399-b84f-01107805e80e" />
 
