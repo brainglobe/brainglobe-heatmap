@@ -11,7 +11,7 @@
 **3D heatmap generated using brainrender**
 
 ## Usage
-For full documentation, please see the [BrainGlobe documentation](https://brainglobe.info/documentation/brainglobe-heatmap/index.html). Examples can be found in the [examples](https://github.com/brainglobe/brainglobe-heatmap/tree/main/examples) directory of this repository. 
+For full documentation, please see the [BrainGlobe documentation](https://brainglobe.info/documentation/brainglobe-heatmap/index.html). Examples can be found in the [examples](https://github.com/brainglobe/brainglobe-heatmap/tree/main/examples) directory of this repository.
 
 ## Quickstart
 ### Installation
