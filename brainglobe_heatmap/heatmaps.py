@@ -358,6 +358,7 @@ class Heatmap:
             name, segment_nr = r.split("_segment_")
             x = coords[:, 0]
             y = coords[:, 1]
+            # calculate area of polygon with Shoelace formula
             area = 0.5 * np.abs(
                 np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
             )
