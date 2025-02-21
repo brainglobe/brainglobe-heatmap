@@ -248,7 +248,7 @@ class Heatmap:
         atlas_name: Optional[str] = None,
         label_regions: Optional[bool] = False,
         annotate_regions: Optional[Union[bool, List[str], Dict]] = False,
-        annotate_text_options: Optional[Dict] = None,
+        annotate_text_options_2d: Optional[Dict] = None,
         check_latest: bool = True,
         **kwargs,
     ):
@@ -295,13 +295,14 @@ class Heatmap:
             Default is False.
         annotate_regions :
             bool, List[str], Dict[str, Union[str, float, int]], optional
-            Controls region annotation in 2D format.
+            Controls region annotation in 2D and 3D format.
             If True, annotates all regions with their names.
             If a list, annotates only the specified regions.
             If a dict, uses custom text/values for annotations.
             Default is False.
-        annotate_text_options : dict, optional
-            Options for customizing region annotations text.
+        annotate_text_options_2d : dict, optional
+            Options for customizing region annotations text in 2D format.
+            matplotlib.text parameters
             Default is None
         check_latest : bool, optional
             Check for the latest version of the atlas. Default is True.
@@ -316,7 +317,7 @@ class Heatmap:
         self.cmap = cmap
         self.label_regions = label_regions
         self.annotate_regions = annotate_regions
-        self.annotate_text_options = annotate_text_options
+        self.annotate_text_options_2d = annotate_text_options_2d
 
         # create a scene
         self.scene = Scene(
@@ -364,6 +365,48 @@ class Heatmap:
         }
         self.colors["root"] = settings.ROOT_COLOR
 
+    def should_annotate_region(self, region_name: str) -> Union[None, str]:
+        """
+        Determine if a region should be annotated
+        based on self.annotate_regions configuration.
+
+        Returns
+        -------
+        None or str
+            None if the region should not be annotated.
+
+        Notes
+        -----
+        The behavior depends on the type of self.annotate_regions:
+        - If bool: All regions except "root" are annotated when True
+        - If list: Only regions in the list are annotated except "root"
+        - If dict: Only regions in the dict keys are annotated,
+          using dict values as display text
+        """
+        if region_name == "root":
+            return None
+
+        should_annotate = (
+            (isinstance(self.annotate_regions, bool) and self.annotate_regions)
+            or (
+                isinstance(self.annotate_regions, list)
+                and region_name in self.annotate_regions
+            )
+            or (
+                isinstance(self.annotate_regions, dict)
+                and region_name in self.annotate_regions.keys()
+            )
+        )
+
+        if not should_annotate:
+            return None
+
+        # Determine what text to use for annotation
+        if isinstance(self.annotate_regions, dict):
+            return str(self.annotate_regions[region_name])
+
+        return region_name
+
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
         Creates a 2D plot or 3D rendering of the heatmap
@@ -390,14 +433,25 @@ class Heatmap:
             The rendered 3D scene.
         """
 
-        # set brain regions colors
+        # set brain regions colors and annotations
         for region, color in self.colors.items():
             if region == "root":
                 continue
+            region_actor = self.scene.get_actors(
+                br_class="brain region", name=region
+            )[0]
+            region_actor.color(color)
 
-            self.scene.get_actors(br_class="brain region", name=region)[
-                0
-            ].color(color)
+            display_text = self.should_annotate_region(region_actor.name)
+
+            if (
+                len(region_actor._mesh.vertices) > 0
+                and display_text is not None
+            ):
+                self.scene.add_label(
+                    actor=region_actor,
+                    label=display_text,
+                )
 
         if camera is None:
             # set camera position and render
@@ -586,40 +640,21 @@ class Heatmap:
                 alpha=0.3 if name == "root" else None,
             )
 
-            should_annotate = (
-                (
-                    isinstance(self.annotate_regions, bool)
-                    and self.annotate_regions
+            display_text = self.should_annotate_region(name)
+            if display_text is not None:
+                ax.annotate(
+                    display_text,
+                    xy=find_annotation_position_inside_polygon(
+                        coords, precision=0.1
+                    ),
+                    ha="center",
+                    va="center",
+                    **(
+                        self.annotate_text_options_2d
+                        if self.annotate_text_options_2d is not None
+                        else {}
+                    ),
                 )
-                or (
-                    isinstance(self.annotate_regions, list)
-                    and name in self.annotate_regions
-                )
-                or (
-                    isinstance(self.annotate_regions, dict)
-                    and name in self.annotate_regions.keys()
-                )
-            )
-            if should_annotate and self.format == "2D":
-                if name != "root":
-                    display_text = (
-                        str(self.annotate_regions[name])
-                        if isinstance(self.annotate_regions, dict)
-                        else name
-                    )
-                    ax.annotate(
-                        display_text,
-                        xy=find_annotation_position_inside_polygon(
-                            coords, precision=0.1
-                        ),
-                        ha="center",
-                        va="center",
-                        **(
-                            self.annotate_text_options
-                            if self.annotate_text_options is not None
-                            else {}
-                        ),
-                    )
 
         if show_cbar:
             # make colorbar
