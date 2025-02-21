@@ -18,23 +18,6 @@ values = {
     "dcs": -5,
 }
 
-# Region annotation:
-# - False or True to annotate all regions with their names
-annotate_regions = True
-# - List[str]: annotate only specified regions with their names,
-# ['gr', 'vf']
-annotate_regions_specific = ["gr"]
-# - Dict[str, Union[str, int, float]]: annotate regions with custom text,
-# dict(TH='Thalamus', 'RSP'=0.2)
-annotate_regions_custom = values
-
-annotate_text_options = dict(
-    fontweight="normal",
-    fontsize=10,
-    rotation="horizontal",  # float or {'vertical', 'horizontal'}
-    color="black",
-    alpha=1,  # float in range 0-1
-)
 
 f = bgh.Heatmap(
     values,
@@ -43,7 +26,5 @@ f = bgh.Heatmap(
     orientation="frontal",
     thickness=1000,
     atlas_name="allen_cord_20um",
-    annotate_regions=False,
-    annotate_text_options=annotate_text_options,
     format="2D",
 ).show()

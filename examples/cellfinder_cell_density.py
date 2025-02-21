@@ -42,23 +42,6 @@ cell_counts = cell_counts.loc[cell_counts.density > 5 * 1e-9]
 
 print(cell_counts)
 
-# Region annotation:
-# - False or True to annotate all regions with their names
-annotate_regions = True
-# - List[str]: annotate only specified regions with their names,
-# ['RSP', 'VIS']
-annotate_regions_specific = ["RSP"]
-# - Dict[str, Union[str, int, float]]: annotate regions with custom text,
-# dict(TH='Thalamus', 'RSP'=0.2)
-annotate_regions_custom = dict(RSP="a1", VIS=0.00)
-
-annotate_text_options = dict(
-    fontweight="normal",
-    fontsize=10,
-    rotation="horizontal",  # float or {'vertical', 'horizontal'}
-    color="black",
-    alpha=1,  # float in range 0-1
-)
 
 f = bgh.Heatmap(
     cell_counts.density.to_dict(),
@@ -71,6 +54,4 @@ f = bgh.Heatmap(
     title="cell density",
     format="2D",
     cmap="Reds",
-    annotate_regions=False,
-    annotate_text_options=annotate_text_options,
 ).show()

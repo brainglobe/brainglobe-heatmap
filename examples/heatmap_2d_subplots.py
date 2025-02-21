@@ -13,24 +13,6 @@ data_dict = {
     "VISam": 1.0,
 }
 
-# Region annotation:
-# - False or True to annotate all regions with their names
-annotate_regions = True
-# - List[str]: annotate only specified regions with their names,
-# ['VISam', 'VISp']
-annotate_regions_specific = ["VISp"]
-# - Dict[str, Union[str, int, float]]: annotate regions with custom text,
-# dict(TH='Thalamus', 'RSP'=0.2)
-annotate_regions_custom = data_dict
-
-annotate_text_options = dict(
-    fontweight="normal",
-    fontsize=10,
-    rotation="horizontal",  # float or {'vertical', 'horizontal'}
-    color="black",
-    alpha=1,  # float in range 0-1
-)
-
 # Create a list of scenes to plot
 # Note: it's important to keep reference to the scenes to avoid a
 # segmentation fault
@@ -46,8 +28,6 @@ for distance in range(7500, 10500, 500):
         vmin=0,
         vmax=1,
         label_regions=False,
-        annotate_regions=False,
-        annotate_text_options=annotate_text_options,
     )
     scenes.append(scene)
 
