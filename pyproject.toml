@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dynamic = ["version"]
 
-dependencies = ["brainrender>=2.1.16", "matplotlib", "numpy", "myterial", "rich"]
+dependencies = ["brainrender>=2.1.16", "matplotlib", "numpy", "myterial", "rich", "shapely"]
 
 license = { text = "MIT" }
 
