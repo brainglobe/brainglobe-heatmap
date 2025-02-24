@@ -1,14 +1,14 @@
-from heapq import heappop, heappush
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib as mpl
-import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
 from brainrender.atlas import Atlas
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
+from shapely import Polygon
+from shapely.algorithms.polylabel import polylabel
 from vedo.colors import color_map as map_color
 
 from brainglobe_heatmap.slicer import Slicer
@@ -51,182 +51,30 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
 
 
 def find_annotation_position_inside_polygon(
-    polygon_vertices: np.ndarray, precision: float = 1.0
-) -> Tuple[float, float]:
+    polygon_vertices: np.ndarray,
+) -> Union[Tuple[float, float], None]:
     """
-    Find the optimal position for placing an annotation inside a polygon.
-    Known as the pole of inaccessibility, the point inside the polygon that is
-    farthest from any of its edges.
-
-    The algorithm works as follows:
-      1. Determine a bounding box around the polygon and generate an
-         initial coarse grid of candidate points within that box.
-      2. For each candidate point, compute the distance to the
-         closest polygon edge if the point is inside the polygon.
-      3. Use a priority queue (max-heap) that have the
-         greatest potential to contain a point with a larger distance.
-      4. Repeatedly extract the cell with the
-         largest potential distance from the queue:
-      5. Continue until no cells can offer an improvement within precision.
-
-    Parameters
-    ----------
-    polygon_vertices : np.ndarray of shape (N, 2)
-        Array of (x, y) coordinates defining the polygon vertices.
-    precision : float, optional
-        The precision tolerance for the result (default: 1.0).
-        A smaller value yields higher accuracy.
+    Finds a suitable point for annotation within a polygon.
 
     Returns
     -------
-    tuple
-        The (x, y) coordinates of the optimal annotation position.
+    Tuple[float, float] or None
+        A tuple (x, y) representing the point
+        None if not enough vertices to form a valid polygon.
     """
+    if polygon_vertices.shape[0] < 4:
+        return None
+    polygon = Polygon(polygon_vertices.tolist())
 
-    def calculate_point_to_edges_distance(
-        px: float, py: float, vertices: np.ndarray
-    ) -> float:
-        """
-        Calculate the minimum distance from a point to the edges of a polygon.
+    # e.g., self-intersections
+    if not polygon.is_valid:
+        polygon = polygon.buffer(0)
+    # choose the largest one
+    if polygon.geom_type == "MultiPolygon":
+        polygon = max(polygon.geoms, key=lambda p: p.area)
 
-        Returns
-        -------
-        float
-            Minimum distance from (x, y) to any edge.
-        """
-        point = np.array([px, py])
-
-        segments = np.vstack((vertices, vertices[0]))
-        segment_starts = segments[:-1]
-        segment_ends = segments[1:]
-
-        edges = segment_ends - segment_starts
-        lengths_sq = np.sum(edges**2, axis=1)
-        valid_edges = lengths_sq > 0
-        min_dist = float("inf")
-
-        # find the minimum distance from a point to a line segment
-        if np.any(valid_edges):
-            segment_ratio = (
-                np.sum(
-                    (point - segment_starts[valid_edges]) * edges[valid_edges],
-                    axis=1,
-                )
-                / lengths_sq[valid_edges]
-            )
-            segment_ratio = np.clip(segment_ratio, 0, 1)
-
-            closest = (
-                segment_starts[valid_edges]
-                + (edges[valid_edges].T * segment_ratio).T
-            )
-            distances = np.sqrt(np.sum((point - closest) ** 2, axis=1))
-            min_dist = min(min_dist, np.min(distances))
-
-        if np.any(~valid_edges):
-            closest = segment_starts[~valid_edges]
-            vertex_distances = np.sqrt(np.sum((point - closest) ** 2, axis=1))
-            if len(vertex_distances) > 0:
-                min_dist = min(min_dist, np.min(vertex_distances))
-
-        return min_dist
-
-    if not isinstance(polygon_vertices, np.ndarray):
-        polygon_vertices = np.asarray(polygon_vertices)
-
-    # determine the bounding box of the polygon
-    min_x, min_y = np.min(polygon_vertices, axis=0)
-    max_x, max_y = np.max(polygon_vertices, axis=0)
-    width = max_x - min_x
-    height = max_y - min_y
-
-    # bigger divisor makes initial grid denser
-    # can help on very narrow polygons
-    cell_size = min(width, height) / 4
-    cell_radius = cell_size / 2
-
-    # create an initial grid of sample points throughout the bounding box
-    x_coords = np.arange(min_x + cell_radius, max_x, cell_size)
-    y_coords = np.arange(min_y + cell_radius, max_y, cell_size)
-    grid_x, grid_y = np.meshgrid(x_coords, y_coords)
-    points = np.column_stack((grid_x.ravel(), grid_y.ravel()))
-
-    # determine which points of the initial grid lie inside the polygon
-    mpath_polygon = mpath.Path(polygon_vertices)
-    inside_mask = mpath_polygon.contains_points(points=points)
-    inside_points = points[inside_mask]
-
-    cell_queue: List[Tuple[float, float, float, float, float]] = []
-    for center_x, center_y in inside_points:
-        if not mpath_polygon.contains_point(point=(center_x, center_y)):
-            distance = float("-inf")
-        else:
-            distance = calculate_point_to_edges_distance(
-                center_x, center_y, polygon_vertices
-            )
-        max_potential = distance + cell_radius * np.sqrt(2)
-        # simulate max-heap behavior storing negative values
-        heappush(
-            cell_queue,
-            (-max_potential, distance, center_x, center_y, cell_radius),
-        )
-
-    # start with center of the bounding box
-    bbox_x = min_x + width / 2
-    bbox_y = min_y + height / 2
-    bbox_distance = calculate_point_to_edges_distance(
-        bbox_x, bbox_y, polygon_vertices
-    )
-    best_distance = bbox_distance
-    best_x, best_y = bbox_x, bbox_y
-
-    while cell_queue:
-        max_potential, distance, x, y, cell_radius = heappop(cell_queue)
-        max_potential = -max_potential
-
-        if max_potential - best_distance <= precision:
-            break
-
-        if distance > best_distance:
-            best_distance = distance
-            best_x = x
-            best_y = y
-
-        # only subdivide further if the cell is large enough
-        if cell_radius > precision / 2:
-            new_cell_radius = cell_radius / 2
-            # four new sub-cells
-            for dx, dy in [
-                (-new_cell_radius, -new_cell_radius),
-                (new_cell_radius, -new_cell_radius),
-                (-new_cell_radius, new_cell_radius),
-                (new_cell_radius, new_cell_radius),
-            ]:
-                new_x = x + dx
-                new_y = y + dy
-
-                # compute distance for the center of the new sub-cell
-                new_distance = calculate_point_to_edges_distance(
-                    new_x, new_y, polygon_vertices
-                )
-                if new_distance != float("-inf"):
-                    new_max_potential = (
-                        new_distance + new_cell_radius * np.sqrt(2)
-                    )
-                    # push into the queue if potentially can beat best_distance
-                    if new_max_potential > best_distance + precision:
-                        heappush(
-                            cell_queue,
-                            (
-                                -new_max_potential,
-                                new_distance,
-                                new_x,
-                                new_y,
-                                new_cell_radius,
-                            ),
-                        )
-
-    return best_x, best_y
+    label_position = polylabel(polygon, tolerance=0.1)
+    return label_position.x, label_position.y
 
 
 class Heatmap:
@@ -365,10 +213,9 @@ class Heatmap:
         }
         self.colors["root"] = settings.ROOT_COLOR
 
-    def should_annotate_region(self, region_name: str) -> Union[None, str]:
+    def get_region_annotation_text(self, region_name: str) -> Union[None, str]:
         """
-        Determine if a region should be annotated
-        based on self.annotate_regions configuration.
+        Gets the annotation text for a region if it should be annotated
 
         Returns
         -------
@@ -442,7 +289,7 @@ class Heatmap:
             )[0]
             region_actor.color(color)
 
-            display_text = self.should_annotate_region(region_actor.name)
+            display_text = self.get_region_annotation_text(region_actor.name)
 
             if (
                 len(region_actor._mesh.vertices) > 0
@@ -640,21 +487,23 @@ class Heatmap:
                 alpha=0.3 if name == "root" else None,
             )
 
-            display_text = self.should_annotate_region(name)
+            display_text = self.get_region_annotation_text(name)
             if display_text is not None:
-                ax.annotate(
-                    display_text,
-                    xy=find_annotation_position_inside_polygon(
-                        coords, precision=0.1
-                    ),
-                    ha="center",
-                    va="center",
-                    **(
-                        self.annotate_text_options_2d
-                        if self.annotate_text_options_2d is not None
-                        else {}
-                    ),
+                annotation_pos = find_annotation_position_inside_polygon(
+                    coords
                 )
+                if annotation_pos is not None:
+                    ax.annotate(
+                        display_text,
+                        xy=annotation_pos,
+                        ha="center",
+                        va="center",
+                        **(
+                            self.annotate_text_options_2d
+                            if self.annotate_text_options_2d is not None
+                            else {}
+                        ),
+                    )
 
         if show_cbar:
             # make colorbar
