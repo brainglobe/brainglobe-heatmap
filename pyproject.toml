@@ -3,7 +3,7 @@ name = "brainglobe-heatmap"
 authors = [{ name = "Federico Claudi", email = "hello@brainglobe.info" }]
 description = "Rendering anatomical heatmaps with brainrender and matplotlib"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dynamic = ["version"]
 
 dependencies = ["brainrender>=2.1.16", "matplotlib", "numpy", "myterial", "rich"]
@@ -14,9 +14,9 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
 ]
@@ -57,7 +57,7 @@ exclude = ["tests*"]
 addopts = "--cov=brainglobe_heatmap"
 
 [tool.black]
-target-version = ['py310','py311', 'py312']
+target-version = ['py311','py312', 'py313']
 skip-string-normalization = false
 line-length = 79
 
@@ -83,14 +83,14 @@ select = ["I", "E", "F", "B"]
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{310,311,312}
+envlist = py{311,312,313}
 isolated_build = True
 
 [gh-actions]
 python =
-    3.10: py310
     3.11: py311
     3.12: py312
+    3.13: py313
 
 [testenv]
 extras =
