@@ -9,6 +9,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
 from shapely import Polygon
 from shapely.algorithms.polylabel import polylabel
+from shapely.geometry.multipolygon import MultiPolygon
 from vedo.colors import color_map as map_color
 
 from brainglobe_heatmap.slicer import Slicer
@@ -69,8 +70,10 @@ def find_annotation_position_inside_polygon(
     # e.g., self-intersections
     if not polygon.is_valid:
         polygon = polygon.buffer(0)
-    # choose the largest one
-    if polygon.geom_type == "MultiPolygon":
+    # choose the largest polygon if considered a MultiPolygon
+    if polygon.geom_type == "MultiPolygon" and isinstance(
+        polygon, MultiPolygon
+    ):
         polygon = max(polygon.geoms, key=lambda p: p.area)
 
     label_position = polylabel(polygon, tolerance=0.1)
