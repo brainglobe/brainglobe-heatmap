@@ -2,8 +2,12 @@ from unittest.mock import patch
 
 import matplotlib.pyplot as plt
 import pytest
+from brainrender import settings
 
 import brainglobe_heatmap as bgh
+
+settings.INTERACTIVE = False
+settings.OFFSCREEN = True
 
 # Regions visible in a frontal slice at position 9000
 EXPECTED_VISIBLE_REGIONS = ["TH", "RSP", "VIS", "CB", "HIP", "RHP"]
@@ -59,9 +63,6 @@ def heatmap_2d():
     heatmap = bgh.Heatmap(EXAMPLE_VALUES, format="2D", **COMMON_PARAMS)
     yield heatmap
     heatmap.scene.close()
-    plt.close("all")
-    del heatmap.scene
-    del heatmap
 
 
 @pytest.fixture
@@ -70,8 +71,6 @@ def heatmap_3d():
     heatmap = bgh.Heatmap(EXAMPLE_VALUES, format="3D", **COMMON_PARAMS)
     yield heatmap
     heatmap.scene.close()
-    del heatmap.scene
-    del heatmap
 
 
 @pytest.mark.parametrize(
