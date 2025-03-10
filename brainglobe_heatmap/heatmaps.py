@@ -62,15 +62,28 @@ def find_annotation_position_inside_polygon(
     Tuple[float, float] or None
         A tuple (x, y) representing the point
         None if not enough vertices to form a valid polygon.
+
+    Notes
+    -----
+    2D polygons only
+    Edge cases:
+    - Requires at least 4 vertices (< 4 returns None)
+    - For invalid polygons, reconstructs the polygon using buffer(0),
+      this resolves e.g., self-intersections
+    - For some types of invalid geometries,
+      buffer(0) may create a shapely MultiPolygon object by
+      splitting self-intersecting areas into separate valid polygons.
+      When this happens, the function gets the largest polygon by area.
+    - Uses Shapely's polylabel algorithm with a tolerance of 0.1
+      that accepts a polygon after edge cases resolved.
     """
     if polygon_vertices.shape[0] < 4:
         return None
     polygon = Polygon(polygon_vertices.tolist())
 
-    # e.g., self-intersections
     if not polygon.is_valid:
         polygon = polygon.buffer(0)
-    # choose the largest polygon if considered a MultiPolygon
+
     if polygon.geom_type == "MultiPolygon" and isinstance(
         polygon, MultiPolygon
     ):
