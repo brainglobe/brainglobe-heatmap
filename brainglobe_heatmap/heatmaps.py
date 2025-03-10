@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
+from brainrender.actor import Actor
 from brainrender.atlas import Atlas
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
@@ -306,15 +307,26 @@ class Heatmap:
             region_actor.color(color)
 
             display_text = self.get_region_annotation_text(region_actor.name)
-
+            label_mesh = self.slicer.plane0.intersect_with(region_actor.mesh)
             if (
-                len(region_actor._mesh.vertices) > 0
+                label_mesh
+                and len(label_mesh.vertices) > 0
                 and display_text is not None
             ):
-                self.scene.add_label(
-                    actor=region_actor,
-                    label=display_text,
+                # create a new actor to not replace region_actor vertices
+                label_actor = Actor(
+                    label_mesh,
+                    name=f"{region_actor.name}_label",
+                    br_class="brain region annotation",
                 )
+                # add the label actor to the scene
+                self.scene.add(label_actor)
+                # add the label to this actor
+                self.scene.add_label(
+                    actor=label_actor, label=display_text, yoffset=200
+                )
+                # make the label actor invisible
+                label_actor.alpha(0)
 
         if camera is None:
             # set camera position and render
