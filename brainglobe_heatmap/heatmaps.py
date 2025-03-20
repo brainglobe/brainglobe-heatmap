@@ -7,6 +7,9 @@ from brainrender import Scene, cameras, settings
 from brainrender.atlas import Atlas
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
+from shapely import Polygon
+from shapely.algorithms.polylabel import polylabel
+from shapely.geometry.multipolygon import MultiPolygon
 from vedo.colors import color_map as map_color
 
 from brainglobe_heatmap.slicer import Slicer
@@ -48,6 +51,48 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     return vmax, vmin
 
 
+def find_annotation_position_inside_polygon(
+    polygon_vertices: np.ndarray,
+) -> Union[Tuple[float, float], None]:
+    """
+    Finds a suitable point for annotation within a polygon.
+
+    Returns
+    -------
+    Tuple[float, float] or None
+        A tuple (x, y) representing the point
+        None if not enough vertices to form a valid polygon.
+
+    Notes
+    -----
+    2D polygons only
+    Edge cases:
+    - Requires at least 4 vertices (< 4 returns None)
+    - For invalid polygons, reconstructs the polygon using buffer(0),
+      this resolves e.g., self-intersections
+    - For some types of invalid geometries,
+      buffer(0) may create a shapely MultiPolygon object by
+      splitting self-intersecting areas into separate valid polygons.
+      When this happens, the function gets the largest polygon by area.
+    - Uses Shapely's polylabel algorithm with a tolerance of 0.1
+      that accepts a polygon after edge cases resolved.
+    """
+    if polygon_vertices.shape[0] < 4:
+        return None
+    polygon = Polygon(polygon_vertices.tolist())
+
+    if not polygon.is_valid:
+        polygon = polygon.buffer(0)
+
+    if polygon.geom_type == "MultiPolygon" and isinstance(
+        polygon, MultiPolygon
+    ):
+        polygon = max(polygon.geoms, key=lambda p: p.area)
+
+    label_position = polylabel(polygon, tolerance=0.1)
+    return label_position.x, label_position.y
+
+
 class Heatmap:
     def __init__(
         self,
@@ -66,6 +111,8 @@ class Heatmap:
         zoom: Optional[float] = None,
         atlas_name: Optional[str] = None,
         label_regions: Optional[bool] = False,
+        annotate_regions: Optional[Union[bool, List[str], Dict]] = False,
+        annotate_text_options_2d: Optional[Dict] = None,
         check_latest: bool = True,
         **kwargs,
     ):
@@ -110,6 +157,17 @@ class Heatmap:
         label_regions : bool, optional
             If True, labels the regions on the colorbar (only valid in 2D).
             Default is False.
+        annotate_regions :
+            bool, List[str], Dict[str, Union[str, float, int]], optional
+            Controls region annotation in 2D and 3D format.
+            If True, annotates all regions with their names.
+            If a list, annotates only the specified regions.
+            If a dict, uses custom text/values for annotations.
+            Default is False.
+        annotate_text_options_2d : dict, optional
+            Options for customizing region annotations text in 2D format.
+            matplotlib.text parameters
+            Default is None
         check_latest : bool, optional
             Check for the latest version of the atlas. Default is True.
         """
@@ -122,6 +180,8 @@ class Heatmap:
         self.title = title
         self.cmap = cmap
         self.label_regions = label_regions
+        self.annotate_regions = annotate_regions
+        self.annotate_text_options_2d = annotate_text_options_2d
 
         # create a scene
         self.scene = Scene(
@@ -169,6 +229,47 @@ class Heatmap:
         }
         self.colors["root"] = settings.ROOT_COLOR
 
+    def get_region_annotation_text(self, region_name: str) -> Union[None, str]:
+        """
+        Gets the annotation text for a region if it should be annotated
+
+        Returns
+        -------
+        None or str
+            None if the region should not be annotated.
+
+        Notes
+        -----
+        The behavior depends on the type of self.annotate_regions:
+        - If bool: All regions except "root" are annotated when True
+        - If list: Only regions in the list are annotated except "root"
+        - If dict: Only regions in the dict keys are annotated,
+          using dict values as display text
+        """
+        if region_name == "root":
+            return None
+
+        should_annotate = (
+            (isinstance(self.annotate_regions, bool) and self.annotate_regions)
+            or (
+                isinstance(self.annotate_regions, list)
+                and region_name in self.annotate_regions
+            )
+            or (
+                isinstance(self.annotate_regions, dict)
+                and region_name in self.annotate_regions.keys()
+            )
+        )
+
+        if not should_annotate:
+            return None
+
+        # Determine what text to use for annotation
+        if isinstance(self.annotate_regions, dict):
+            return str(self.annotate_regions[region_name])
+
+        return region_name
+
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
         Creates a 2D plot or 3D rendering of the heatmap
@@ -195,14 +296,25 @@ class Heatmap:
             The rendered 3D scene.
         """
 
-        # set brain regions colors
+        # set brain regions colors and annotations
         for region, color in self.colors.items():
             if region == "root":
                 continue
+            region_actor = self.scene.get_actors(
+                br_class="brain region", name=region
+            )[0]
+            region_actor.color(color)
 
-            self.scene.get_actors(br_class="brain region", name=region)[
-                0
-            ].color(color)
+            display_text = self.get_region_annotation_text(region_actor.name)
+
+            if (
+                len(region_actor._mesh.vertices) > 0
+                and display_text is not None
+            ):
+                self.scene.add_label(
+                    actor=region_actor,
+                    label=display_text,
+                )
 
         if camera is None:
             # set camera position and render
@@ -390,6 +502,24 @@ class Heatmap:
                 zorder=-1 if name == "root" else None,
                 alpha=0.3 if name == "root" else None,
             )
+
+            display_text = self.get_region_annotation_text(name)
+            if display_text is not None:
+                annotation_pos = find_annotation_position_inside_polygon(
+                    coords
+                )
+                if annotation_pos is not None:
+                    ax.annotate(
+                        display_text,
+                        xy=annotation_pos,
+                        ha="center",
+                        va="center",
+                        **(
+                            self.annotate_text_options_2d
+                            if self.annotate_text_options_2d is not None
+                            else {}
+                        ),
+                    )
 
         if show_cbar:
             # make colorbar
