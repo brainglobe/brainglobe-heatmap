@@ -528,26 +528,34 @@ class Heatmap:
 
             # cmap = mpl.cm.cool
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
-            if self.label_regions is True:
-                cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(
-                        norm=None,
-                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
-                    ),
-                    cax=cax,
-                )
-            else:
-                cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
-                )
+            cbar = fig.colorbar(
+                mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+            )
 
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
             if self.label_regions is True:
-                cbar.ax.set_yticklabels(
-                    [r.strip() for r in self.values.keys()]
-                )
+                unique_visible_regions = set()
+                for r in projected.keys():
+                    name = r.split("_segment_")[0]
+                    if name != "root":
+                        unique_visible_regions.add(name)
+
+                visible_regions_values: list[tuple[str, float]] = [
+                    (region, self.values[region])
+                    for region in unique_visible_regions
+                ]
+
+                tick_labels: list[str] = []
+                tick_values: list[float] = []
+                for region, value in visible_regions_values:
+                    if value > self.vmax or value < self.vmin:
+                        continue
+                    tick_labels.append(region)
+                    tick_values.append(value)
+
+                cbar.set_ticks(ticks=tick_values, labels=tick_labels)
 
         # style axes
         ax.invert_yaxis()
