@@ -21,4 +21,4 @@ f = bgh.Heatmap(
     title="",  # title=None for title with positions number
     label_regions=False,
     format="2D",
-).show(filename="saved_picture", show_cbar=True, hide_axes=False)
+).show(show_cbar=True, hide_axes=False)
