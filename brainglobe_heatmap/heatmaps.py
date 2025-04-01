@@ -127,6 +127,7 @@ class Heatmap:
             magnitudes as the values.
         position : list, tuple, np.ndarray, float
             Position of the plane in the atlas.
+            list of positions create multiple slices.
         orientation : str or tuple, optional
             Orientation of the plane in the atlas. Either, "frontal",
             "sagittal", "horizontal" or a tuple with the normal vector.
@@ -182,6 +183,8 @@ class Heatmap:
         self.label_regions = label_regions
         self.annotate_regions = annotate_regions
         self.annotate_text_options_2d = annotate_text_options_2d
+        self.slicer: Optional[Slicer] = None
+        self.multiple_slicers: Optional[List[Slicer]] = None
 
         # create a scene
         self.scene = Scene(
@@ -204,8 +207,27 @@ class Heatmap:
             if r.name != "root"
         ]
 
-        # prepare slicer object
-        self.slicer = Slicer(position, orientation, thickness, self.scene.root)
+        # prepare slicer object or objects when list(position)
+        if isinstance(position, list):
+            if self.format == "3D":
+                raise ValueError(
+                    "List of positions not supported in 3D format. "
+                    "Did you mean to use a tuple as a 3D position?"
+                )
+            if len(position) <= 1:
+                raise ValueError(
+                    "List of positions should contain more than one position. "
+                    "Did you mean to pass a single value?"
+                )
+            self.positions = position
+            self.multiple_slicers = [
+                Slicer(pos, orientation, thickness, self.scene.root)
+                for pos in position
+            ]
+        else:
+            self.slicer = Slicer(
+                position, orientation, thickness, self.scene.root
+            )
 
     def prepare_colors(
         self,
@@ -275,6 +297,9 @@ class Heatmap:
         Creates a 2D plot or 3D rendering of the heatmap
         """
         if self.format == "3D":
+            assert (
+                self.slicer is not None
+            ), "Cannot access slice, check your parameters"
             self.slicer.slice_scene(self.scene, self.regions_meshes)
             view = self.render(**kwargs)
         else:
@@ -327,6 +352,9 @@ class Heatmap:
                     camera = self.orientation
             else:
                 self.orientation = np.array(self.orientation)
+                assert (
+                    self.slicer is not None
+                ), "Cannot access plane0: slicer is None"
                 com = self.slicer.plane0.center_of_mass()
                 camera = {
                     "pos": com - self.orientation * 2 * np.linalg.norm(com),
@@ -349,7 +377,7 @@ class Heatmap:
         cbar_label: Optional[str] = None,
         show_cbar: bool = True,
         **kwargs,
-    ) -> plt.Figure:
+    ) -> Union[plt.Figure, List[plt.Figure]]:
         """
         Plots the heatmap in 2D using matplotlib.
 
@@ -381,39 +409,118 @@ class Heatmap:
 
         Returns
         -------
-        plt.Figure
-            The matplotlib figure object for the plot.
+        Union[plt.Figure, List[plt.Figure]]
+            The matplotlib figure object for the plot,
+            or a list of figure objects
+            when list(positions) are provided.
 
         Notes
         -----
         This method is used to generate a standalone plot of
         the heatmap data.
+        When list(positions) are provided to class constructor,
+        it creates multiple figures with optimized grid layouts.
         """
 
-        f, ax = plt.subplots(figsize=(9, 9))
+        if self.multiple_slicers is not None:
+            num_slices = len(self.multiple_slicers)
+            max_plots_per_fig = min(25, num_slices)
+            num_figures = (
+                num_slices + max_plots_per_fig - 1
+            ) // max_plots_per_fig
 
-        f, ax = self.plot_subplot(
-            fig=f,
-            ax=ax,
-            show_legend=show_legend,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            hide_axes=hide_axes,
-            cbar_label=cbar_label,
-            show_cbar=show_cbar,
-            **kwargs,
-        )
+            all_figures = []
+            for fig_idx in range(num_figures):
+                # calculate grid layout for the figure
+                start_idx = fig_idx * max_plots_per_fig
+                end_idx = min((fig_idx + 1) * max_plots_per_fig, num_slices)
+                current_num_slices = end_idx - start_idx
 
-        if filename is not None:
-            plt.savefig(filename, dpi=300)
+                nrows = int(np.ceil(np.sqrt(current_num_slices)))
+                ncols = int(np.ceil(current_num_slices / nrows))
 
-        plt.show()
-        return f
+                f, axes = plt.subplots(
+                    nrows,
+                    ncols,
+                    layout="constrained",
+                    figsize=(26.25, 15),  # 7:4 aspect ratio works well
+                )
+
+                # padding (left, bottom, right, top) [0-1]%
+                f.get_layout_engine().set(rect=(0, 0.01, 1, 0.97))
+                axes_flat = axes.flatten()
+
+                # plot each position into the figure
+                for i in range(current_num_slices):
+                    global_i = start_idx + i
+                    projected, _ = self.multiple_slicers[
+                        global_i
+                    ].get_structures_slice_coords(
+                        self.regions_meshes, self.scene.root
+                    )
+
+                    self.plot_subplot(
+                        f,
+                        axes_flat[i],
+                        projected,
+                        show_legend,
+                        xlabel,
+                        ylabel,
+                        hide_axes,
+                        cbar_label,
+                        show_cbar,
+                        **kwargs,
+                    )
+
+                    axes_flat[i].set_title(
+                        self.title
+                        if self.title is not None
+                        else f"Position {self.positions[global_i]}"
+                    )
+
+                # hide any empty subplots
+                for i in range(current_num_slices, len(axes_flat)):
+                    axes_flat[i].axis("off")
+
+                # save if filename provided
+                if filename and num_figures > 1:
+                    print("Saving ", f"fig{fig_idx+1}_{filename}")
+                    plt.savefig(f"fig{fig_idx+1}_{filename}", dpi=200)
+                elif filename:
+                    print("Saving ", filename)
+                    plt.savefig(filename, dpi=200)
+
+                all_figures.append(f)
+            plt.show()
+
+            return all_figures
+        else:
+            f, ax = plt.subplots(figsize=(9, 9))
+
+            f, ax = self.plot_subplot(
+                fig=f,
+                ax=ax,
+                show_legend=show_legend,
+                xlabel=xlabel,
+                ylabel=ylabel,
+                hide_axes=hide_axes,
+                cbar_label=cbar_label,
+                show_cbar=show_cbar,
+                **kwargs,
+            )
+
+            if filename is not None:
+                print("Saving ", filename)
+                plt.savefig(filename, dpi=300)
+
+            plt.show()
+            return f
 
     def plot_subplot(
         self,
         fig: plt.Figure,
         ax: plt.Axes,
+        projected=None,
         show_legend: bool = False,
         xlabel: str = "µm",
         ylabel: str = "µm",
@@ -431,10 +538,14 @@ class Heatmap:
 
         Parameters
         ----------
-        fig : plt.Figure, optional
+        fig : plt.Figure
             The figure object in which the subplot is plotted.
-        ax : plt.Axes, optional
+        ax : plt.Axes
             The axes object in which the subplot is plotted.
+        projected : dict, optional
+            Pre-computed slice coordinates.
+            If None, coordinates will be
+            calculated using the self.slicer.
         show_legend : bool, optional
             If True, displays a legend for the plotted regions.
             Default is False.
@@ -461,9 +572,13 @@ class Heatmap:
         -----
         This method modifies the provided figure and axes objects in-place.
         """
-        projected, _ = self.slicer.get_structures_slice_coords(
-            self.regions_meshes, self.scene.root
-        )
+        if projected is None:
+            assert (
+                self.slicer is not None
+            ), "Cannot plot: slicer is None and no projected data provided"
+            projected, _ = self.slicer.get_structures_slice_coords(
+                self.regions_meshes, self.scene.root
+            )
 
         segments: List[Dict[str, Union[str, np.ndarray, float]]] = []
         for r, coords in projected.items():

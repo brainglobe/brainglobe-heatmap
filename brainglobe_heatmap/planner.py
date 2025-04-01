@@ -72,6 +72,10 @@ class plan(Heatmap):
         )
 
         # print planes information
+        assert self.slicer is not None, (
+            "Cannot access plane0/plane1: slicer is None, "
+            "check your position parameter"
+        )
         print_plane("Plane 0", self.slicer.plane0, blue_dark)
         print_plane("Plane 1", self.slicer.plane1, pink_dark)
 
