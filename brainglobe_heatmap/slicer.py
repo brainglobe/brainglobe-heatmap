@@ -36,30 +36,30 @@ class Slicer:
         3D vector) + thickness (spacing between the two planes)
         """
         if position is None:
-            position = root.center_of_mass()
+            _position = root.center_of_mass()
 
         if isinstance(position, (float, int, np.number)):
             if isinstance(orientation, str):
-                pval = position
-                position = root.center_of_mass()
-                position[get_ax_idx(orientation)] = pval
+                _position = root.center_of_mass()
+                _position[get_ax_idx(orientation)] = position
             else:
                 raise ValueError(
                     "When a single float value is passed for "
                     "position, the orientation "
                     "should be one of the named orientations values"
                 )
+        else:
+            _position = np.array(position)
 
-        position = np.array(position)
-        position[2] = -position[2]
+        _position[2] = -_position[2]
 
         if isinstance(orientation, str):
             axidx = get_ax_idx(orientation)
 
-            # get the two points the plances are cenered at
+            # get the two points the plances are centered at
             shift = np.zeros(3)
             shift[axidx] -= thickness
-            p1 = position - shift
+            p1 = _position - shift
 
             # get the two planes
             # assures that u0×v0 is all-positive -> it's for plane0
@@ -69,16 +69,16 @@ class Slicer:
                 u0, v0 = np.array([[1, 0, 0], [0, 1, 0]])
             else:  # orientation == "horizontal"
                 u0, v0 = np.array([[0, 0, 1], [1, 0, 0]])
-            plane0 = Plane(position, u0, v0)
+            plane0 = Plane(_position, u0, v0)
             u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
             plane1 = Plane(p1, u1, v1)
         else:
             orientation = np.array(orientation)
 
-            p1 = position + orientation * thickness  # type: ignore
+            p1 = _position + orientation * thickness  # type: ignore
 
             norm0 = orientation  # type: ignore
-            plane0 = Plane.from_norm(position, norm0)
+            plane0 = Plane.from_norm(_position, norm0)
             norm1 = -orientation  # type: ignore
             plane1 = Plane.from_norm(p1, norm1)
 
