@@ -465,23 +465,23 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        segments: List[Dict[str, Union[str, np.ndarray, float]]] = []
+        segments = []
         for r, coords in projected.items():
             name, segment_nr = r.split("_segment_")
-            x = coords[:, 0]
-            y = coords[:, 1]
+            x: np.ndarray = coords[:, 0]
+            y: np.ndarray = coords[:, 1]
             # calculate area of polygon with Shoelace formula
             area = 0.5 * np.abs(
                 np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
             )
 
             segments.append(
-                {
-                    "name": name,
-                    "segment_nr": segment_nr,
-                    "coords": coords,
-                    "area": area,
-                }
+                dict(
+                    name=name,
+                    segment_nr=int(segment_nr),
+                    coords=coords,
+                    area=area,
+                )
             )
 
         # Sort region segments by area (largest first)
@@ -503,7 +503,7 @@ class Heatmap:
                 alpha=0.3 if name == "root" else None,
             )
 
-            display_text = self.get_region_annotation_text(name)
+            display_text = self.get_region_annotation_text(str(name))
             if display_text is not None:
                 annotation_pos = find_annotation_position_inside_polygon(
                     coords
