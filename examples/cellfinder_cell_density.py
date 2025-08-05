@@ -14,12 +14,30 @@ import brainglobe_heatmap as bgh
 
 # get the number of cells for each region
 cells_path = Path(__file__).parent / "cell_counts_example.h5"
+cells_summary = pd.read_csv(Path(__file__).parent / "summary.csv")
 
 data = pd.read_hdf(cells_path)
 cell_counts = data.groupby("region").count()
 
 # get regions two levels up the hierarchy
 atlas = BrainGlobeAtlas("allen_mouse_25um")
+structures_csv = pd.read_csv(atlas.root_dir / "structures.csv")
+
+cells_summary = cells_summary[cells_summary["total_cells"] > 0]
+merged_df = pd.merge(
+    cells_summary, structures_csv, left_on="structure_name", right_on="name"
+)
+mask = [
+    len(atlas.get_structure_descendants(atl_id)) == 0
+    for atl_id in merged_df["id"]
+]
+filtered_merged_df = merged_df[mask]
+
+par_regions = set(
+    atlas.get_structure_ancestors(r)[-2] for r in filtered_merged_df["id"]
+)
+filtered_par_merged_df = merged_df[merged_df["acronym"].isin(par_regions)]
+
 parent_regions = [
     atlas.get_structure_ancestors(r)[-2] for r in cell_counts.index
 ]
