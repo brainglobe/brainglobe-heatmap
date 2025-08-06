@@ -25,7 +25,7 @@ cells_summary = pd.merge(
     cells_summary, structures_csv, left_on="structure_name", right_on="name"
 )
 
-# Fetch the 2nd order parent region for each cell region to accumulate
+# Fetch the 2nd order parent region for each region to accumulate
 # cell counts at that level
 cells_summary["parent_region"] = [
     (
