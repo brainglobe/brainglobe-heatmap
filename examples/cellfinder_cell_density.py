@@ -17,12 +17,12 @@ cells_summary = pd.read_csv(Path(__file__).parent / "summary.csv")
 
 # get regions two levels up the hierarchy
 atlas = BrainGlobeAtlas("allen_mouse_25um")
-structures_csv = pd.read_csv(atlas.root_dir / "structures.csv")
+structures_df = atlas.lookup_df
 
 # Merge the cells summary with the structures CSV to get structure
 # acronyms and IDs
 cells_summary = pd.merge(
-    cells_summary, structures_csv, left_on="structure_name", right_on="name"
+    cells_summary, structures_df, left_on="structure_name", right_on="name"
 )
 
 # Fetch the 2nd order parent region for each region to accumulate
