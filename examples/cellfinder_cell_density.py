@@ -60,6 +60,8 @@ cells_summary["cells_per_mm3"] = (
 # Filter out regions with very low cell density
 cells_summary = cells_summary.loc[cells_summary["cells_per_mm3"] > 5 * 1e-9]
 
+print(cells_summary[["volume_mm3","cells_per_mm3"]])
+
 f = bgh.Heatmap(
     cells_summary["cells_per_mm3"].to_dict(),
     position=(
