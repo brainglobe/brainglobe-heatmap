@@ -50,6 +50,10 @@ jobs:
       - name: install HDF libs on ARM Mac
         if: matrix.os == 'macos-latest'
         run: brew install hdf5
+      - name: print github dir
+        run: |
+          echo $GITHUB_WORKSPACE
+          echo ${{ github.workspace }}
       # Run tests
       - uses: neuroinformatics-unit/actions/test@v2
         with:
