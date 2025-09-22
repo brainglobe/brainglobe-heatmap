@@ -37,7 +37,7 @@ jobs:
           - os: macos-latest
             python-version: "3.13"
           - os: windows-latest
-            python-version: "3.12"
+            python-version: "3.13"
 
     steps:
       - name: Cache brainglobe directory
@@ -47,6 +47,10 @@ jobs:
             ~/.brainglobe
             !~/.brainglobe/atlas.tar.gz
           key: brainglobe
+      - name: print github workspace
+        run: |
+          echo $GITHUB_WORKSPACE
+          echo ${{ github.workspace }}
       - name: install HDF libs on ARM Mac
         if: matrix.os == 'macos-latest'
         run: brew install hdf5
