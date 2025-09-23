@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pytest
 from brainrender import settings
@@ -55,6 +56,8 @@ COMMON_PARAMS = {
     "check_latest": False,
     "interactive": False,
 }
+
+mpl.use("Agg")  # Use a non-interactive backend for testing
 
 
 @pytest.fixture
