@@ -18,7 +18,7 @@ repos:
           - id: requirements-txt-fixer
           - id: trailing-whitespace
     - repo: https://github.com/astral-sh/ruff-pre-commit
-      rev: v0.13.3
+      rev: v0.14.3
       hooks:
         - id: ruff
     - repo: https://github.com/psf/black-pre-commit-mirror
@@ -32,7 +32,7 @@ repos:
             additional_dependencies:
                 - types-setuptools
     - repo: https://github.com/mgedmin/check-manifest
-      rev: "0.50"
+      rev: "0.51"
       hooks:
           - id: check-manifest
             args: [--no-build-isolation]
