@@ -1,6 +1,6 @@
 [![Python Version](https://img.shields.io/pypi/pyversions/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
 [![PyPI](https://img.shields.io/pypi/v/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
-[![Napari hub](https://img.shields.io/endpoint?url=https://npe2api-git-add-shields-napari.vercel.app/api/shields/brainglobe-segmentation)](https://napari-hub.org/plugins/brainglobe-segmentation.html)
+[![Napari hub](https://img.shields.io/endpoint?url=https://npe2api-git-add-shields-napari.vercel.app/api/shields/brainglobe-heatmap)](https://napari-hub.org/plugins/brainglobe-heatmap.html)
 [![Downloads](https://pepy.tech/badge/brainglobe-heatmap)](https://pepy.tech/project/brainglobe-heatmap)
 [![Wheel](https://img.shields.io/pypi/wheel/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
 [![Development Status](https://img.shields.io/pypi/status/brainglobe-heatmap.svg)](https://github.com/brainglobe/brainglobe-heatmap)
