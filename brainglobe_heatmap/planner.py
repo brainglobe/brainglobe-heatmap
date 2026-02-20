@@ -72,8 +72,8 @@ class plan(Heatmap):
         )
 
         # print planes information
-        print_plane("Plane 0", self.slicer.plane0, blue_dark)
-        print_plane("Plane 1", self.slicer.plane1, pink_dark)
+        print_plane("Plane 0", self.slicers[0].plane0, blue_dark)
+        print_plane("Plane 1", self.slicers[0].plane1, pink_dark)
 
     def show(self):
         """
@@ -82,13 +82,13 @@ class plan(Heatmap):
         self.scene.root._mesh.alpha(0.3)
 
         # show sliced brain regions
-        self.slicer.show_plane_intersection(
+        self.slicers[0].show_plane_intersection(
             self.scene, self.regions_meshes, self.scene.root
         )
 
         # add slicing planes and their norms
         for plane, color, alpha in zip(
-            (self.slicer.plane0, self.slicer.plane1),
+            (self.slicers[0].plane0, self.slicers[0].plane1),
             (blue_dark, pink_dark),
             (0.8, 0.3),
             strict=False,
