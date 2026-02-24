@@ -1,0 +1,127 @@
+name: example-screenshots
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Runs at 6:10am UTC on Monday
+    - cron: '10 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  pixel-comparison:
+    name: "Pixel comparison (Ubuntu, 3.13)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Cache brainglobe directory
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.brainglobe
+            !~/.brainglobe/atlas.tar.gz
+          key: brainglobe
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Install xvfb
+        run: >-
+          sudo apt-get update &&
+          sudo apt-get install -y xvfb
+
+      - name: Run 2D tests with pixel comparison
+        run: >-
+          xvfb-run pytest
+          tests/test_integration/test_examples.py
+          -v --no-cov --mpl
+          --mpl-results-path=mpl-results
+          -k "test_example_2d"
+
+      - name: Run 3D smoke tests
+        run: >-
+          xvfb-run pytest
+          tests/test_integration/test_examples.py
+          -v --no-cov
+          -k "test_example_3d"
+
+      - name: Upload comparison diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mpl-diffs
+          path: mpl-results/
+          retention-days: 5
+
+      - name: Upload 3D screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-screenshots-3d
+          path: test_example_outputs/
+          retention-days: 5
+
+  cross-platform-smoke:
+    name: "Smoke ${{ matrix.os }} py${{ matrix.python-version }}"
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12"]
+        include:
+          - os: macos-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.13"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache brainglobe directory
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.brainglobe
+            !~/.brainglobe/atlas.tar.gz
+          key: brainglobe-${{ matrix.os }}-${{ matrix.python-version }}
+
+      - name: Install HDF5 libs on ARM Mac
+        if: matrix.os == 'macos-latest'
+        run: brew install hdf5
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Install xvfb (Linux only)
+        if: runner.os == 'Linux'
+        run: >-
+          sudo apt-get update &&
+          sudo apt-get install -y xvfb
+
+      - name: Run example smoke tests (Linux)
+        if: runner.os == 'Linux'
+        run: >-
+          xvfb-run pytest
+          tests/test_integration/test_examples.py
+          -v --no-cov
+
+      - name: Run example smoke tests (non-Linux)
+        if: runner.os != 'Linux'
+        run: >-
+          pytest
+          tests/test_integration/test_examples.py
+          -v --no-cov

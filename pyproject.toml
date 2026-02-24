@@ -32,6 +32,7 @@ classifiers = [
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-mpl",
     "coverage",
     "tox",
     "black",
@@ -55,6 +56,9 @@ exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=brainglobe_heatmap"
+filterwarnings = [
+    "ignore::pytest.PytestReturnNotNoneWarning:tests.test_integration.test_examples",
+]
 
 [tool.black]
 target-version = ['py311','py312', 'py313']

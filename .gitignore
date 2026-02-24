@@ -81,3 +81,9 @@ venv/
 
 # written by setuptools_scm
 **/_version.py
+
+# Example test screenshot outputs
+test_example_outputs/
+
+# pytest-mpl comparison results
+mpl-results/
