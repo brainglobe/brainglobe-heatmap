@@ -44,7 +44,6 @@ class Plane:
             bounds[5] - bounds[4],
         )
         length += length / 3
-
         plane_mesh = Actor(
             vd.Plane(pos=self.center, normal=self.normal, s=(length, length)),
             name=f"PlaneMesh at {self.center} norm: {self.normal}",
@@ -58,7 +57,7 @@ class Plane:
 
     def p3_to_p2(self, ps):
         # ps is a list of 3D points
-        # returns a list of 2D point mapped on
+        # returns a list of 2D points mapped on
         # the plane (u -> x axis, v -> y axis)
         return (ps - self.center) @ self.M
 
@@ -67,17 +66,32 @@ class Plane:
             origin=self.center, normal=self.normal
         )
 
-    # for Slicer.get_structures_slice_coords()
     def get_projections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
+        """
+        Slice each mesh actor with this plane and return 2D projections.
+
+        NOTE: This method is used by the 3D rendering path only.
+        The 2D path now uses atlas.annotation directly (see heatmaps.py),
+        which completely avoids the mesh-slicing artefacts reported in #103.
+
+        The mesh.cap() call (credit: @zenWai) closes any open meshes before
+        intersection, improving robustness for the 3D path.
+        """
         projected = {}
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
+
+            # Cap open meshes before intersection to reduce split artefacts
+            # in 3D mode (fix suggested by @zenWai in issue #103)
+            if not mesh.is_closed():
+                mesh = mesh.cap()
+
             intersection = self.intersect_with(mesh)
             if not intersection.vertices.shape[0]:
                 continue
-            pieces = intersection.split()  # intersection.split() in newer vedo
+
+            pieces = intersection.split()
             for piece_n, piece in enumerate(pieces):
-                # sort coordinates
                 points = piece.join(reset=True).vertices
                 projected[actor.name + f"_segment_{piece_n}"] = self.p3_to_p2(
                     points
