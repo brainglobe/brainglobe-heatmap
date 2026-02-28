@@ -241,7 +241,7 @@ def _annotation_to_rgba(
     return rgba
 
 
-# ── Main Heatmap class ────────────────────────────────────────────────────────
+# ── Main Heatmap class ───────────────────────────────────────────────────────
 
 
 class Heatmap:
@@ -568,7 +568,7 @@ class Heatmap:
             zorder=0,
         )
 
-        # ── 4. Draw region contours (pixel-perfect + smoothed) ────────────────
+        # ── 4. Draw region contours (pixel-perfect + smoothed) ───────────────
         # Work on the original (non-upsampled) sl for contour extraction —
         # skimage contours are in (row, col) units; convert to µm via res.
         for rid in np.unique(sl):
@@ -590,7 +590,7 @@ class Heatmap:
                     zorder=2,
                 )
 
-        # ── 5. Bold outer brain outline ───────────────────────────────────────
+        # ── 5. Bold outer brain outline ──────────────────────────────────────
         brain_binary = (sl != 0).astype(np.uint8)
         for contour in measure.find_contours(brain_binary, level=0.5):
             contour_s = _smooth_contour(contour, sigma=contour_sigma)
@@ -659,7 +659,7 @@ class Heatmap:
                         ),
                     )
 
-        # ── 7. Colorbar ───────────────────────────────────────────────────────
+        # ── 7. Colorbar ──────────────────────────────────────────────────────
         if show_cbar:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
@@ -686,7 +686,7 @@ class Heatmap:
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
-        # ── 8. Axis styling (unchanged from original) ─────────────────────────
+        # ── 8. Axis styling (unchanged from original) ────────────────────────
         ax.invert_yaxis()
         ax.axis("equal")
         ax.spines["right"].set_visible(False)
