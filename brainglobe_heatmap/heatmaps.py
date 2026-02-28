@@ -70,6 +70,7 @@ def find_annotation_position_inside_polygon(
 
 # ── Annotation-based 2D helpers (fix for issue #103) ─────────────────────────
 
+
 def _get_annotation_slice(
     atlas,
     position: float,
@@ -84,8 +85,8 @@ def _get_annotation_slice(
     res_row : float  — µm per pixel along rows
     res_col : float  — µm per pixel along cols
     """
-    ann = atlas.annotation          # shape (AP, DV, ML), dtype uint32/int
-    res = atlas.resolution          # (res_AP, res_DV, res_ML) in µm
+    ann = atlas.annotation  # shape (AP, DV, ML), dtype uint32/int
+    res = atlas.resolution  # (res_AP, res_DV, res_ML) in µm
 
     if isinstance(orientation, str):
         orientation = orientation.lower()
@@ -94,19 +95,19 @@ def _get_annotation_slice(
         # slice along AP axis (axis 0)
         idx = int(round(position / res[0]))
         idx = int(np.clip(idx, 0, ann.shape[0] - 1))
-        sl = ann[idx, :, :]         # shape (DV, ML)
+        sl = ann[idx, :, :]  # shape (DV, ML)
         res_row, res_col = res[1], res[2]
     elif orientation == "sagittal":
         # slice along ML axis (axis 2)
         idx = int(round(position / res[2]))
         idx = int(np.clip(idx, 0, ann.shape[2] - 1))
-        sl = ann[:, :, idx]         # shape (AP, DV)
+        sl = ann[:, :, idx]  # shape (AP, DV)
         res_row, res_col = res[0], res[1]
     elif orientation == "horizontal":
         # slice along DV axis (axis 1)
         idx = int(round(position / res[1]))
         idx = int(np.clip(idx, 0, ann.shape[1] - 1))
-        sl = ann[:, idx, :]         # shape (AP, ML)
+        sl = ann[:, idx, :]  # shape (AP, ML)
         res_row, res_col = res[0], res[2]
     else:
         # custom normal vector — fall back to frontal
@@ -211,9 +212,10 @@ def _annotation_to_rgba(
     # contours are drawn on top)
     if upsample > 1:
         from PIL import Image
+
         # Image.Resampling.NEAREST is canonical in Pillow >= 9.1;
         # fall back to Image.NEAREST for older installs.
-        _nearest = getattr(getattr(Image, "Resampling", Image), "NEAREST")
+        _nearest = getattr(Image, "Resampling", Image).NEAREST
         img_u8 = (rgba * 255).clip(0, 255).astype(np.uint8)
         pil = Image.fromarray(img_u8, mode="RGBA")
         pil = pil.resize(
@@ -229,7 +231,7 @@ def _annotation_to_rgba(
         for c in range(3):
             ch = rgba[:, :, c]
             blurred = gaussian_filter(ch * hm_mask, sigma=fill_sigma)
-            weight  = gaussian_filter(hm_mask,       sigma=fill_sigma)
+            weight = gaussian_filter(hm_mask, sigma=fill_sigma)
             rgba[:, :, c] = np.where(
                 hm_mask > 0.5,
                 blurred / np.where(weight > 1e-6, weight, 1.0),
@@ -240,6 +242,7 @@ def _annotation_to_rgba(
 
 
 # ── Main Heatmap class ────────────────────────────────────────────────────────
+
 
 class Heatmap:
     def __init__(
@@ -578,7 +581,8 @@ class Heatmap:
                 xs = contour_s[:, 1] * res_col
                 ys = contour_s[:, 0] * res_row
                 ax.plot(
-                    xs, ys,
+                    xs,
+                    ys,
                     color=contour_color,
                     linewidth=contour_lw,
                     alpha=0.75,
@@ -593,7 +597,8 @@ class Heatmap:
             xs = contour_s[:, 1] * res_col
             ys = contour_s[:, 0] * res_row
             ax.plot(
-                xs, ys,
+                xs,
+                ys,
                 color=brain_outline_color,
                 linewidth=brain_outline_lw,
                 alpha=0.92,
@@ -633,10 +638,12 @@ class Heatmap:
                 if not contours:
                     continue
                 largest = max(contours, key=len)
-                coords_um = np.column_stack([
-                    largest[:, 1] * res_col,
-                    largest[:, 0] * res_row,
-                ])
+                coords_um = np.column_stack(
+                    [
+                        largest[:, 1] * res_col,
+                        largest[:, 0] * res_row,
+                    ]
+                )
                 pos = find_annotation_position_inside_polygon(coords_um)
                 if pos is not None:
                     ax.annotate(
@@ -662,7 +669,9 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
+                        cmap=mpl.colormaps.get_cmap(
+                            self.cmap, len(self.values)
+                        ),
                     ),
                     cax=cax,
                 )
