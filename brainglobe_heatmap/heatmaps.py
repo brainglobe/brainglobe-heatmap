@@ -285,9 +285,8 @@ class Heatmap:
         """
         Builds self.actor_colors: {actor -> color}.
 
-        Per-hemisphere actors are named "REGION__side" after
-        _split_hemisphere_actors,
-        so we parse the side directly from the name — no CoM detection needed.
+        Per-hemisphere actors are named "REGION__side" after splitting.
+        The side is parsed directly from the name — no CoM detection needed.
         Bilateral actors keep their plain region name.
         """
         self.actor_colors = {}
@@ -507,7 +506,7 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
+                        cmap=mpl.cm.get_cmap(self.cmap, len(self.colors) - 1),
                     ),
                     cax=cax,
                 )
