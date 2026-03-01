@@ -36,6 +36,11 @@ def parse_values(values):
     bilateral = {}
     per_hemisphere = {}
     for region, val in values.items():
+        if "__" in region:
+            raise ValueError(
+                f'Region name "{region}" contains "__" which is reserved '
+                f"for internal hemisphere tracking."
+            )
         if isinstance(val, dict):
             if not val.keys() <= {"left", "right"}:
                 raise ValueError(

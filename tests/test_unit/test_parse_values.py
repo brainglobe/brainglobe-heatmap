@@ -63,3 +63,9 @@ def test_empty_input():
     bilateral, per_hemi = parse_values({})
     assert bilateral == {}
     assert per_hemi == {}
+
+
+def test_double_underscore_in_region_name_raises():
+    """Region names containing __ are reserved for internal use."""
+    with pytest.raises(ValueError, match="reserved"):
+        parse_values({"TH__left": 1.0})
