@@ -311,7 +311,7 @@ class Heatmap:
         **kwargs
             Additional arguments passed to the rendering/plotting function.
             For 2D plots (`format="2D"`), this accepts styling parameters:
-            `upsample`, `fill_sigma`, `contour_sigma`, `contour_lw`, 
+            `upsample`, `fill_sigma`, `contour_sigma`, `contour_lw`,
             `contour_color`, `brain_outline_color`, `brain_outline_lw`
             (see `Heatmap.plot_subplot` for details).
         """
