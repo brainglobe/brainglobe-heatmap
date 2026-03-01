@@ -1,10 +1,7 @@
-from typing import Dict, List, Optional, Tuple, Union
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
-from brainrender.atlas import Atlas
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
 from shapely import Polygon
@@ -21,6 +18,21 @@ settings.ROOT_COLOR = grey_darker
 
 
 def parse_values(values):
+    """
+    Splits values dict into bilateral (scalar) and per_hemisphere (dict) parts.
+
+    Parameters
+    ----------
+    values : dict
+        Keys are region acronyms. Values are either:
+        - float/int: same value for both hemispheres
+        - dict with "left" and/or "right" keys: hemisphere-specific values
+
+    Returns
+    -------
+    bilateral : dict
+    per_hemisphere : dict
+    """
     bilateral = {}
     per_hemisphere = {}
     for region, val in values.items():
@@ -31,7 +43,9 @@ def parse_values(values):
                     f'"left" and/or "right" keys, got: {list(val.keys())}'
                 )
             if not val:
-                raise ValueError(f'Per-hemisphere dict for "{region}" is empty.')
+                raise ValueError(
+                    f'Per-hemisphere dict for "{region}" is empty.'
+                )
             per_hemisphere[region] = val
         else:
             bilateral[region] = val
@@ -39,6 +53,10 @@ def parse_values(values):
 
 
 def check_values(values, atlas):
+    """
+    Validates region names and value types.
+    Returns global (vmax, vmin) across all values.
+    """
     all_scalars = []
     for k, v in values.items():
         if k not in atlas.lookup_df.acronym.values:
@@ -70,7 +88,9 @@ def find_annotation_position_inside_polygon(polygon_vertices):
     polygon = Polygon(polygon_vertices.tolist())
     if not polygon.is_valid:
         polygon = polygon.buffer(0)
-    if polygon.geom_type == "MultiPolygon" and isinstance(polygon, MultiPolygon):
+    if polygon.geom_type == "MultiPolygon" and isinstance(
+        polygon, MultiPolygon
+    ):
         polygon = max(polygon.geoms, key=lambda p: p.area)
     label_position = polylabel(polygon, tolerance=0.1)
     return label_position.x, label_position.y
@@ -98,6 +118,41 @@ class Heatmap:
         check_latest=True,
         **kwargs,
     ):
+        """
+        Creates a heatmap visualization of the provided values in 3D or 2D.
+
+        Parameters
+        ----------
+        values : dict
+            Keys are region acronyms. Values can be:
+            - float/int: same color for both hemispheres (backwards compatible)
+            - dict with "left"/"right" keys for hemisphere-specific colors
+
+            Example::
+
+                {
+                    "TH": 1.0,
+                    "VISp": {"left": 0.8, "right": 0.2},
+                    "MOp": {"left": 0.5},
+                }
+
+        position : list, tuple, np.ndarray, or float
+        orientation : str or tuple, optional
+        hemisphere : str, optional
+            Applies only to bilateral (scalar) regions. Default "both".
+        title : str, optional
+        cmap : str, optional
+        vmin, vmax : float, optional
+        format : str, optional. "3D" or "2D"
+        thickness : float, optional
+        interactive : bool, optional
+        zoom : float, optional
+        atlas_name : str, optional
+        label_regions : bool, optional
+        annotate_regions : bool, list, or dict, optional
+        annotate_text_options_2d : dict, optional
+        check_latest : bool, optional
+        """
         self.values = values
         self.format = format
         self.orientation = orientation
@@ -121,58 +176,112 @@ class Heatmap:
 
         self.prepare_colors(values, cmap, vmin, vmax)
 
+        # Add bilateral regions (original behaviour, backwards compatible)
         if bilateral_values:
-            self.scene.add_brain_region(*bilateral_values.keys(), hemisphere=hemisphere)
+            self.scene.add_brain_region(
+                *bilateral_values.keys(), hemisphere=hemisphere
+            )
 
+        # Add per-hemisphere regions: one actor per requested side.
+        # We add them bilaterally and cut manually to avoid brainrender's
+        # get_plane() which has a numpy>=2.0 compat bug.
         for region, side_vals in per_hemisphere_values.items():
-            for side in ("left", "right"):
-                if side in side_vals:
-                    self.scene.add_brain_region(region, hemisphere=side, force=True)
+            for _ in side_vals:
+                self.scene.add_brain_region(region, force=True)
 
         self.regions_meshes = [
-            r for r in self.scene.get_actors(br_class="brain region") if r.name != "root"
+            r
+            for r in self.scene.get_actors(br_class="brain region")
+            if r.name != "root"
         ]
 
-        self._build_actor_color_map(per_hemisphere_values)
+        # Cut and rename per-hemisphere actors
+        self._split_hemisphere_actors(per_hemisphere_values)
+
+        # Map each actor -> color
+        self._build_actor_color_map()
+
         self.slicer = Slicer(position, orientation, thickness, self.scene.root)
 
-    def _get_actor_hemisphere(self, actor):
-        if self.scene.atlas.metadata["symmetric"]:
-            mesh_center = self.scene.root._mesh.bounds().reshape((3, 2)).mean(axis=1)
-        else:
-            mesh_center = self.scene.root._mesh.center_of_mass()
-        mid_z = mesh_center[2]
-        actor_z = actor._mesh.center_of_mass()[2]
-        if actor_z > mid_z:
-            return "right"
-        elif actor_z < mid_z:
-            return "left"
-        else:
-            return "both"
+    def _get_midplane_center(self):
+        """Returns root mesh CoM as the atlas midpoint."""
+        return self.scene.root._mesh.center_of_mass()
 
-    def _build_actor_color_map(self, per_hemisphere_values):
+    def _split_hemisphere_actors(self, per_hemisphere_values):
+        """
+        Cuts per-hemisphere region meshes to the correct side and renames
+        each actor to "REGION__left" or "REGION__right" so the slicer can
+        distinguish two actors that share the same region name.
+
+        One actor is added per requested side in __init__, assigned in
+        dict insertion order (left before right if both specified).
+
+        Normals confirmed empirically with Allen Mouse atlas:
+          normal=(0, 0,  1) -> keeps z > mid_z -> LEFT hemisphere
+          normal=(0, 0, -1) -> keeps z < mid_z -> RIGHT hemisphere
+        """
+        if not per_hemisphere_values:
+            return
+        mesh_center = self._get_midplane_center()
+        seen = {}
+        for actor in self.regions_meshes:
+            name = actor.name
+            if name not in per_hemisphere_values:
+                continue
+            requested_sides = list(per_hemisphere_values[name].keys())
+            seen[name] = seen.get(name, 0)
+            side = requested_sides[seen[name]]
+            seen[name] += 1
+            actor.name = f"{name}__{side}"
+            if side == "left":
+                actor._mesh.cut_with_plane(
+                    origin=mesh_center, normal=(0, 0, 1)
+                )
+                actor._mesh.cap()
+            elif side == "right":
+                actor._mesh.cut_with_plane(
+                    origin=mesh_center, normal=(0, 0, -1)
+                )
+                actor._mesh.cap()
+
+    def _build_actor_color_map(self):
+        """
+        Builds self.actor_colors: {actor -> color}.
+
+        Per-hemisphere actors are named "REGION__side" after
+        _split_hemisphere_actors,
+        so we parse the side directly from the name — no CoM detection needed.
+        Bilateral actors keep their plain region name.
+        """
         self.actor_colors = {}
         for actor in self.regions_meshes:
             name = actor.name
             if name == "root":
                 continue
-            if name in per_hemisphere_values:
-                side = self._get_actor_hemisphere(actor)
-                side_vals = per_hemisphere_values[name]
-                if side in side_vals:
-                    self.actor_colors[actor] = self.colors[f"{side}:{name}"]
-                else:
-                    self.actor_colors[actor] = self.colors.get(name, settings.ROOT_COLOR)
+            if "__" in name:
+                region, side = name.rsplit("__", 1)
+                self.actor_colors[actor] = self.colors.get(
+                    f"{side}:{region}", settings.ROOT_COLOR
+                )
             else:
-                self.actor_colors[actor] = self.colors.get(name, settings.ROOT_COLOR)
+                self.actor_colors[actor] = self.colors.get(
+                    name, settings.ROOT_COLOR
+                )
 
     def prepare_colors(self, values, cmap, vmin, vmax):
+        """
+        Builds self.colors flat dict:
+        - "REGION" -> color  (bilateral)
+        - "left:REGION" / "right:REGION" -> color  (per-hemisphere)
+        - "root" -> ROOT_COLOR
+        """
         _vmax, _vmin = check_values(values, self.scene.atlas)
         if _vmax == _vmin:
             _vmin = _vmax * 0.5
         vmin = vmin if vmin == 0 or vmin else _vmin
         vmax = vmax if vmax == 0 or vmax else _vmax
         self.vmin, self.vmax = vmin, vmax
+
         self.colors = {}
         for region, val in values.items():
             if isinstance(val, dict):
@@ -181,7 +290,9 @@ class Heatmap:
                         map_color(sv, name=cmap, vmin=vmin, vmax=vmax)
                     )
             else:
-                self.colors[region] = list(map_color(val, name=cmap, vmin=vmin, vmax=vmax))
+                self.colors[region] = list(
+                    map_color(val, name=cmap, vmin=vmin, vmax=vmax)
+                )
         self.colors["root"] = settings.ROOT_COLOR
 
     def get_region_annotation_text(self, region_name):
@@ -189,8 +300,14 @@ class Heatmap:
             return None
         should_annotate = (
             (isinstance(self.annotate_regions, bool) and self.annotate_regions)
-            or (isinstance(self.annotate_regions, list) and region_name in self.annotate_regions)
-            or (isinstance(self.annotate_regions, dict) and region_name in self.annotate_regions.keys())
+            or (
+                isinstance(self.annotate_regions, list)
+                and region_name in self.annotate_regions
+            )
+            or (
+                isinstance(self.annotate_regions, dict)
+                and region_name in self.annotate_regions.keys()
+            )
         )
         if not should_annotate:
             return None
@@ -209,7 +326,11 @@ class Heatmap:
     def render(self, camera=None):
         for actor, color in self.actor_colors.items():
             actor.color(color)
-            display_text = self.get_region_annotation_text(actor.name)
+            # Strip __side suffix for annotation lookup
+            display_name = (
+                actor.name.split("__")[0] if "__" in actor.name else actor.name
+            )
+            display_text = self.get_region_annotation_text(display_name)
             if len(actor._mesh.vertices) > 0 and display_text is not None:
                 self.scene.add_label(actor=actor, label=display_text)
 
@@ -229,33 +350,76 @@ class Heatmap:
                     "viewup": (0, -1, 0),
                     "clipping_range": (19531, 40903),
                 }
-        self.scene.render(camera=camera, interactive=self.interactive, zoom=self.zoom)
+        self.scene.render(
+            camera=camera, interactive=self.interactive, zoom=self.zoom
+        )
         return self.scene
 
-    def plot(self, show_legend=False, xlabel="µm", ylabel="µm", hide_axes=False,
-             filename=None, cbar_label=None, show_cbar=True, **kwargs):
+    def plot(
+        self,
+        show_legend=False,
+        xlabel="µm",
+        ylabel="µm",
+        hide_axes=False,
+        filename=None,
+        cbar_label=None,
+        show_cbar=True,
+        **kwargs,
+    ):
         f, ax = plt.subplots(figsize=(9, 9))
         f, ax = self.plot_subplot(
-            fig=f, ax=ax, show_legend=show_legend, xlabel=xlabel, ylabel=ylabel,
-            hide_axes=hide_axes, cbar_label=cbar_label, show_cbar=show_cbar, **kwargs,
+            fig=f,
+            ax=ax,
+            show_legend=show_legend,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            hide_axes=hide_axes,
+            cbar_label=cbar_label,
+            show_cbar=show_cbar,
+            **kwargs,
         )
         if filename is not None:
             plt.savefig(filename, dpi=300)
         plt.show()
         return f
 
-    def plot_subplot(self, fig, ax, show_legend=False, xlabel="µm", ylabel="µm",
-                    hide_axes=False, cbar_label=None, show_cbar=True, **kwargs):
-        projected, _ = self.slicer.get_structures_slice_coords(self.regions_meshes, self.scene.root)
+    def plot_subplot(
+        self,
+        fig,
+        ax,
+        show_legend=False,
+        xlabel="µm",
+        ylabel="µm",
+        hide_axes=False,
+        cbar_label=None,
+        show_cbar=True,
+        **kwargs,
+    ):
+        projected, _ = self.slicer.get_structures_slice_coords(
+            self.regions_meshes, self.scene.root
+        )
 
-        actor_name_to_color = {actor.name: color for actor, color in self.actor_colors.items()}
+        # actor_name_to_color maps full actor name (incl. __side suffix)
+        # to color
+        actor_name_to_color = {
+            actor.name: color for actor, color in self.actor_colors.items()
+        }
 
         segments = []
         for r, coords in projected.items():
             name, segment_nr = r.split("_segment_")
             x, y = coords[:, 0], coords[:, 1]
-            area = 0.5 * np.abs(np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
-            segments.append(dict(name=name, segment_nr=int(segment_nr), coords=coords, area=area))
+            area = 0.5 * np.abs(
+                np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
+            )
+            segments.append(
+                dict(
+                    name=name,
+                    segment_nr=int(segment_nr),
+                    coords=coords,
+                    area=area,
+                )
+            )
 
         segments.sort(key=lambda s: s["area"], reverse=True)
 
@@ -264,20 +428,36 @@ class Heatmap:
             segment_nr = segment["segment_nr"]
             coords = segment["coords"]
             color = actor_name_to_color.get(name, self.colors.get(name))
+            # Strip __side suffix for display purposes
+            display_name = name.split("__")[0] if "__" in name else name
             ax.fill(
-                coords[:, 0], coords[:, 1], color=color,
-                label=name if segment_nr == 0 and name != "root" else None,
-                lw=1, ec="k",
+                coords[:, 0],
+                coords[:, 1],
+                color=color,
+                label=display_name
+                if segment_nr == 0 and display_name != "root"
+                else None,
+                lw=1,
+                ec="k",
                 zorder=-1 if name == "root" else None,
                 alpha=0.3 if name == "root" else None,
             )
-            display_text = self.get_region_annotation_text(str(name))
+            display_text = self.get_region_annotation_text(display_name)
             if display_text is not None:
-                annotation_pos = find_annotation_position_inside_polygon(coords)
+                annotation_pos = find_annotation_position_inside_polygon(
+                    coords
+                )
                 if annotation_pos is not None:
                     ax.annotate(
-                        display_text, xy=annotation_pos, ha="center", va="center",
-                        **(self.annotate_text_options_2d if self.annotate_text_options_2d is not None else {}),
+                        display_text,
+                        xy=annotation_pos,
+                        ha="center",
+                        va="center",
+                        **(
+                            self.annotate_text_options_2d
+                            if self.annotate_text_options_2d is not None
+                            else {}
+                        ),
                     )
 
         if show_cbar:
@@ -286,15 +466,22 @@ class Heatmap:
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             if self.label_regions is True:
                 cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(norm=None, cmap=mpl.cm.get_cmap(self.cmap, len(self.values))),
+                    mpl.cm.ScalarMappable(
+                        norm=None,
+                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
+                    ),
                     cax=cax,
                 )
             else:
-                cbar = fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
             if self.label_regions is True:
-                cbar.ax.set_yticklabels([r.strip() for r in self.values.keys()])
+                cbar.ax.set_yticklabels(
+                    [r.strip() for r in self.values.keys()]
+                )
 
         ax.invert_yaxis()
         ax.axis("equal")
