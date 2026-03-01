@@ -241,9 +241,7 @@ class Heatmap:
         normal = (0, 0, 1) if hemisphere == "left" else (0, 0, -1)
         for actor in self.regions_meshes:
             if actor.name in regions:
-                actor._mesh.cut_with_plane(
-                    origin=mesh_center, normal=normal
-                )
+                actor._mesh.cut_with_plane(origin=mesh_center, normal=normal)
                 actor._mesh.cap()
 
     def _split_hemisphere_actors(self, per_hemisphere_values):
