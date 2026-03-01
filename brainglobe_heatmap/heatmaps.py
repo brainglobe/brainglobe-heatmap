@@ -209,7 +209,17 @@ class Heatmap:
         self.slicer = Slicer(position, orientation, thickness, self.scene.root)
 
     def _get_midplane_center(self):
-        """Returns root mesh CoM as the atlas midpoint."""
+        """
+        Returns the atlas midpoint for hemisphere splitting.
+
+        Mirrors brainrender's own logic: for symmetric atlases use the
+        geometric centre of the bounding box; for asymmetric atlases
+        use the centre of mass. This matches how brainrender's own
+        hemisphere= param works internally.
+        """
+        if self.scene.atlas.metadata["symmetric"]:
+            bounds = self.scene.root._mesh.bounds()
+            return np.array(bounds).reshape(3, 2).mean(axis=1)
         return self.scene.root._mesh.center_of_mass()
 
     def _split_hemisphere_actors(self, per_hemisphere_values):
