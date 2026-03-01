@@ -12,20 +12,24 @@ def test_all_bilateral():
 
 def test_all_per_hemisphere():
     """All regions with hemisphere-specific values."""
-    bilateral, per_hemi = parse_values({
-        "VISp": {"left": 0.8, "right": 0.2},
-    })
+    bilateral, per_hemi = parse_values(
+        {
+            "VISp": {"left": 0.8, "right": 0.2},
+        }
+    )
     assert bilateral == {}
     assert per_hemi == {"VISp": {"left": 0.8, "right": 0.2}}
 
 
 def test_mixed_bilateral_and_per_hemisphere():
     """Mix of scalar and per-hemisphere values splits correctly."""
-    bilateral, per_hemi = parse_values({
-        "TH": 1.0,
-        "VISp": {"left": 0.8, "right": 0.2},
-        "MOp": {"left": 0.5},
-    })
+    bilateral, per_hemi = parse_values(
+        {
+            "TH": 1.0,
+            "VISp": {"left": 0.8, "right": 0.2},
+            "MOp": {"left": 0.5},
+        }
+    )
     assert bilateral == {"TH": 1.0}
     assert per_hemi == {
         "VISp": {"left": 0.8, "right": 0.2},
@@ -49,7 +53,7 @@ def test_right_only():
 
 def test_invalid_hemisphere_key_raises():
     """Invalid hemisphere key (not left/right) raises ValueError."""
-    with pytest.raises(ValueError, match='may only contain'):
+    with pytest.raises(ValueError, match="may only contain"):
         parse_values({"VISp": {"left": 0.8, "center": 0.2}})
 
 

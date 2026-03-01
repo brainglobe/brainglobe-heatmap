@@ -439,9 +439,11 @@ class Heatmap:
                 coords[:, 0],
                 coords[:, 1],
                 color=color,
-                label=display_name
-                if segment_nr == 0 and display_name != "root"
-                else None,
+                label=(
+                    display_name
+                    if segment_nr == 0 and display_name != "root"
+                    else None
+                ),
                 lw=1,
                 ec="k",
                 zorder=-1 if name == "root" else None,

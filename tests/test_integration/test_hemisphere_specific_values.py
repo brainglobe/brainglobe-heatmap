@@ -4,6 +4,7 @@ Integration tests for hemisphere-specific heatmap values (issue #58).
 Users can now pass a dict with "left"/"right" keys for any region
 to visualise different values in each hemisphere.
 """
+
 import matplotlib as mpl
 import pytest
 from brainrender import settings
@@ -60,9 +61,7 @@ def heatmap_mixed():
 def test_both_hemispheres_produces_two_actors(heatmap_both_hemispheres):
     """Two actors should be created, one per hemisphere."""
     th_actors = [
-        a
-        for a in heatmap_both_hemispheres.regions_meshes
-        if "TH" in a.name
+        a for a in heatmap_both_hemispheres.regions_meshes if "TH" in a.name
     ]
     assert len(th_actors) == 2
     names = {a.name for a in th_actors}
@@ -72,8 +71,7 @@ def test_both_hemispheres_produces_two_actors(heatmap_both_hemispheres):
 def test_both_hemispheres_different_colors(heatmap_both_hemispheres):
     """Left and right actors should have different colors."""
     color_by_name = {
-        a.name: c
-        for a, c in heatmap_both_hemispheres.actor_colors.items()
+        a.name: c for a, c in heatmap_both_hemispheres.actor_colors.items()
     }
     assert color_by_name["TH__left"] != color_by_name["TH__right"]
     # left=0.8 -> darker (lower red channel in Reds cmap)
@@ -83,9 +81,7 @@ def test_both_hemispheres_different_colors(heatmap_both_hemispheres):
 
 def test_left_only_produces_one_actor(heatmap_left_only):
     """Only one actor should be created when only left is specified."""
-    th_actors = [
-        a for a in heatmap_left_only.regions_meshes if "TH" in a.name
-    ]
+    th_actors = [a for a in heatmap_left_only.regions_meshes if "TH" in a.name]
     assert len(th_actors) == 1
     assert th_actors[0].name == "TH__left"
 
