@@ -308,6 +308,12 @@ class Heatmap:
             matplotlib.text options for 2D annotations. Default is None.
         check_latest : bool, optional
             Check for latest atlas version. Default is True.
+        **kwargs
+            Additional arguments passed to the rendering/plotting function.
+            For 2D plots (`format="2D"`), this accepts styling parameters:
+            `upsample`, `fill_sigma`, `contour_sigma`, `contour_lw`, 
+            `contour_color`, `brain_outline_color`, `brain_outline_lw`
+            (see `Heatmap.plot_subplot` for details).
         """
         self.values = values
         self.format = format
@@ -393,7 +399,18 @@ class Heatmap:
         return region_name
 
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
-        """Creates a 2D plot or 3D rendering of the heatmap."""
+        """
+        Creates a 2D plot or 3D rendering of the heatmap.
+
+        Parameters
+        ----------
+        **kwargs
+            Additional arguments passed to the rendering/plotting function.
+            For 2D plots, this accepts styling parameters like `upsample`,
+            `fill_sigma`, `contour_sigma`, `contour_lw`, `contour_color`,
+            `brain_outline_color`, `brain_outline_lw`
+            (see `Heatmap.plot_subplot` for full details).
+        """
         if self.format == "3D":
             self.slicer.slice_scene(self.scene, self.regions_meshes)
             view = self.render(**kwargs)
