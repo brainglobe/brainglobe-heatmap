@@ -182,10 +182,11 @@ class Heatmap:
         self.prepare_colors(values, cmap, vmin, vmax)
 
         # Add bilateral regions (original behaviour, backwards compatible)
+        # We add bilaterally then cut manually when hemisphere != "both",
+        # bypassing brainrender's hemisphere= param which calls get_plane()
+        # — broken on numpy>=2.0 (float(np.diff(...)) fails).
         if bilateral_values:
-            self.scene.add_brain_region(
-                *bilateral_values.keys(), hemisphere=hemisphere
-            )
+            self.scene.add_brain_region(*bilateral_values.keys())
 
         # Add per-hemisphere regions: one actor per requested side.
         # We add them bilaterally and cut manually to avoid brainrender's
@@ -199,6 +200,13 @@ class Heatmap:
             for r in self.scene.get_actors(br_class="brain region")
             if r.name != "root"
         ]
+
+        # Cut bilateral regions to requested hemisphere (must be after
+        # regions_meshes is populated)
+        if bilateral_values and hemisphere in ("left", "right"):
+            self._cut_bilateral_to_hemisphere(
+                list(bilateral_values.keys()), hemisphere
+            )
 
         # Cut and rename per-hemisphere actors
         self._split_hemisphere_actors(per_hemisphere_values)
@@ -221,6 +229,22 @@ class Heatmap:
             bounds = self.scene.root._mesh.bounds()
             return np.array(bounds).reshape(3, 2).mean(axis=1)
         return self.scene.root._mesh.center_of_mass()
+
+    def _cut_bilateral_to_hemisphere(self, regions, hemisphere):
+        """
+        Cuts bilateral region meshes to a single hemisphere in-place.
+        Used when the user passes hemisphere="left" or hemisphere="right"
+        for the whole heatmap. Replaces brainrender's hemisphere= param
+        which is broken on numpy>=2.0.
+        """
+        mesh_center = self._get_midplane_center()
+        normal = (0, 0, 1) if hemisphere == "left" else (0, 0, -1)
+        for actor in self.regions_meshes:
+            if actor.name in regions:
+                actor._mesh.cut_with_plane(
+                    origin=mesh_center, normal=normal
+                )
+                actor._mesh.cap()
 
     def _split_hemisphere_actors(self, per_hemisphere_values):
         """
