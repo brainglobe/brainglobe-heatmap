@@ -505,9 +505,7 @@ class Heatmap:
             # region_color_keys: all color entries except "root",
             # in insertion order. For per-hemisphere values these include
             # "left:REGION" and "right:REGION" as separate entries.
-            region_color_keys = [
-                k for k in self.colors.keys() if k != "root"
-            ]
+            region_color_keys = [k for k in self.colors.keys() if k != "root"]
             if self.label_regions is True:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
@@ -525,9 +523,7 @@ class Heatmap:
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
             if self.label_regions is True:
-                cbar.ax.set_yticklabels(
-                    [r.strip() for r in region_color_keys]
-                )
+                cbar.ax.set_yticklabels([r.strip() for r in region_color_keys])
 
         ax.invert_yaxis()
         ax.axis("equal")
