@@ -502,11 +502,19 @@ class Heatmap:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+            # region_color_keys: all color entries except "root",
+            # in insertion order. For per-hemisphere values these include
+            # "left:REGION" and "right:REGION" as separate entries.
+            region_color_keys = [
+                k for k in self.colors.keys() if k != "root"
+            ]
             if self.label_regions is True:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.cm.get_cmap(self.cmap, len(self.colors) - 1),
+                        cmap=mpl.cm.get_cmap(
+                            self.cmap, len(region_color_keys)
+                        ),
                     ),
                     cax=cax,
                 )
@@ -518,7 +526,7 @@ class Heatmap:
                 cbar.set_label(cbar_label)
             if self.label_regions is True:
                 cbar.ax.set_yticklabels(
-                    [r.strip() for r in self.values.keys()]
+                    [r.strip() for r in region_color_keys]
                 )
 
         ax.invert_yaxis()
