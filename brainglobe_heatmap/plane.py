@@ -67,8 +67,15 @@ class Plane:
             origin=self.center, normal=self.normal
         )
 
-    # for Slicer.get_structures_slice_coords()
     def get_projections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
+        """
+        Intersect meshes with this plane and project to local 2D coordinates.
+
+        Returns coordinates relative to the plane center using the plane's
+        own u,v basis vectors: (0, 0) corresponds to the plane center.
+        For atlas-space coordinates, use Slicer.get_structures_slice_coords().
+
+        """
         projected = {}
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
