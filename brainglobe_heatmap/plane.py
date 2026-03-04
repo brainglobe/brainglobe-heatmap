@@ -78,14 +78,14 @@ class Plane:
             pieces = intersection.split()  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
-                points = self._join_reset(piece)
+                points = self._join_reset(piece).vertices
                 projected[actor.name + f"_segment_{piece_n}"] = self.p3_to_p2(
                     points
                 )
         return projected
 
     @staticmethod
-    def _join_reset(piece: vd.Mesh) -> np.ndarray:
+    def _join_reset(piece: vd.Mesh) -> vd.Mesh:
         """
         Replicates vedo's Mesh.join(reset=True) with MaximumLength
         raised from the default 1000.
@@ -116,4 +116,4 @@ class Plane:
         vpts = poly.GetCell(0).GetPoints().GetData()
         poly.GetPoints().SetData(vpts)
 
-        return poly.GetPoints().GetData()
+        return vd.Mesh(poly)
