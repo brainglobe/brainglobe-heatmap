@@ -57,7 +57,10 @@ COMMON_PARAMS = {
     "interactive": False,
 }
 
-mpl.use("Agg")  # Use a non-interactive backend for testing
+# The Agg (non-interactive) matplotlib backend is set in conftest.py
+# before any test module is imported. Setting it here would be too late
+# because heatmaps.py imports matplotlib.pyplot at module level, which
+# already locks in the backend before this line could run.
 
 
 @pytest.fixture
