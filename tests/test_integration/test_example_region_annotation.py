@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pytest
 from brainrender import settings
