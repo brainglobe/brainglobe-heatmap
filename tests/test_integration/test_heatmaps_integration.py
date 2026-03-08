@@ -67,8 +67,8 @@ COMMON_PARAMS = {
 }
 
 
-
 # Fixtures
+
 
 @pytest.fixture
 def heatmap_2d():
@@ -84,8 +84,8 @@ def heatmap_3d():
     heatmap.scene.close()
 
 
-
 # plot_subplot: image output
+
 
 @pytest.mark.parametrize(
     "color_mode",
@@ -107,8 +107,8 @@ def test_plot_subplot_returns_fig_and_ax(heatmap_2d):
     plt.close("all")
 
 
-
 # plot_subplot: colorbar
+
 
 def test_colorbar_present_in_heatmap_mode(heatmap_2d):
     heatmap_2d.color_mode = "heatmap"
@@ -127,8 +127,8 @@ def test_no_colorbar_in_atlas_mode(heatmap_2d):
     plt.close("all")
 
 
-
 # plot_subplot: legend
+
 
 @pytest.mark.parametrize(
     "color_mode,expect_legend",
@@ -148,8 +148,8 @@ def test_legend_presence_by_color_mode(heatmap_2d, color_mode, expect_legend):
     plt.close("all")
 
 
-
 # plot_subplot: axes styling
+
 
 def test_hide_axes_removes_ticks(heatmap_2d):
     fig, ax = plt.subplots()
@@ -169,8 +169,8 @@ def test_background_colour_applied(heatmap_2d):
     plt.close("all")
 
 
-
 # plot_subplot: region labels
+
 
 def test_show_labels_adds_text_artists():
     hm = bgh.Heatmap(
@@ -189,8 +189,8 @@ def test_show_labels_adds_text_artists():
     hm.scene.close()
 
 
-
 # plot_subplot: warnings
+
 
 def test_no_warning_for_valid_regions(heatmap_2d):
     fig, ax = plt.subplots()
@@ -219,8 +219,8 @@ def test_warning_for_region_absent_from_slice():
     hm.scene.close()
 
 
-
 # annotate_regions — 2D
+
 
 @pytest.mark.parametrize(
     "annotate_regions,expected_regions,unexpected_regions",
@@ -258,19 +258,19 @@ def test_annotate_regions_2d(
         annotated = [call.args[0] for call in mock_annotate.call_args_list]
 
         if not expected_regions:
-            assert len(annotated) == 0, (
-                f"Expected no annotations, got {annotated}"
-            )
+            assert (
+                len(annotated) == 0
+            ), f"Expected no annotations, got {annotated}"
 
         for region in expected_regions:
-            assert any(region == a for a in annotated), (
-                f"Expected '{region}' in annotations, got {annotated}"
-            )
+            assert any(
+                region == a for a in annotated
+            ), f"Expected '{region}' in annotations, got {annotated}"
 
         for region in unexpected_regions:
-            assert region not in annotated, (
-                f"Unexpected region '{region}' found in annotations"
-            )
+            assert (
+                region not in annotated
+            ), f"Unexpected region '{region}' found in annotations"
 
         if mock_annotate.called:
             for call in mock_annotate.call_args_list:
@@ -280,8 +280,8 @@ def test_annotate_regions_2d(
         plt.close("all")
 
 
-
 # annotate_regions — 3D
+
 
 @pytest.mark.parametrize(
     "annotate_regions,expected_regions,unexpected_regions",
@@ -320,16 +320,16 @@ def test_annotate_regions_3d(
         ]
 
         if not expected_regions:
-            assert len(annotated) == 0, (
-                f"Expected no annotations, got {annotated}"
-            )
+            assert (
+                len(annotated) == 0
+            ), f"Expected no annotations, got {annotated}"
 
         for region in expected_regions:
-            assert any(region == a for a in annotated), (
-                f"Expected '{region}' in annotations, got {annotated}"
-            )
+            assert any(
+                region == a for a in annotated
+            ), f"Expected '{region}' in annotations, got {annotated}"
 
         for region in unexpected_regions:
-            assert region not in annotated, (
-                f"Unexpected region '{region}' found in annotations"
-            )
+            assert (
+                region not in annotated
+            ), f"Unexpected region '{region}' found in annotations"

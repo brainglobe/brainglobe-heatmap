@@ -1,5 +1,6 @@
 import warnings
 from typing import Dict, List, Optional, Tuple, Union
+
 import matplotlib as mpl
 import matplotlib.colors as mcolors
 import matplotlib.patches as mpatches
@@ -12,13 +13,14 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
 from scipy.ndimage import (
     center_of_mass,
-    label as ndlabel,
     uniform_filter1d,
+)
+from scipy.ndimage import (
+    label as ndlabel,
 )
 from shapely import Polygon
 from shapely.algorithms.polylabel import polylabel
 from shapely.geometry.multipolygon import MultiPolygon
-
 from skimage.measure import find_contours
 from vedo.colors import color_map as map_color
 
@@ -33,14 +35,31 @@ settings.ROOT_COLOR = grey_darker
 # Distinct pastel colors for atlas-style region coloring,
 # inspired by the Allen Brain Atlas color scheme.
 ATLAS_REGION_COLORS = [
-    "#AEC6CF", "#FFD1DC", "#FFDAC1", "#B5EAD7", "#C7CEEA",
-    "#FFFACD", "#FFB7B2", "#E2F0CB", "#DDA0DD", "#87CEEB",
-    "#F0E68C", "#98FB98", "#FFC0CB", "#D8BFD8", "#AFEEEE",
-    "#FFDEAD", "#E6E6FA", "#F5DEB3", "#B0E0E6", "#FFE4E1",
+    "#AEC6CF",
+    "#FFD1DC",
+    "#FFDAC1",
+    "#B5EAD7",
+    "#C7CEEA",
+    "#FFFACD",
+    "#FFB7B2",
+    "#E2F0CB",
+    "#DDA0DD",
+    "#87CEEB",
+    "#F0E68C",
+    "#98FB98",
+    "#FFC0CB",
+    "#D8BFD8",
+    "#AFEEEE",
+    "#FFDEAD",
+    "#E6E6FA",
+    "#F5DEB3",
+    "#B0E0E6",
+    "#FFE4E1",
 ]
 
 
 # Utility functions
+
 
 def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     """
@@ -107,13 +126,16 @@ def find_annotation_position_inside_polygon(
     polygon = Polygon(polygon_vertices.tolist())
     if not polygon.is_valid:
         polygon = polygon.buffer(0)
-    if polygon.geom_type == "MultiPolygon" and isinstance(polygon, MultiPolygon):
+    if polygon.geom_type == "MultiPolygon" and isinstance(
+        polygon, MultiPolygon
+    ):
         polygon = max(polygon.geoms, key=lambda p: p.area)
     label_position = polylabel(polygon, tolerance=0.1)
     return label_position.x, label_position.y
 
 
 # Internal helpers for annotation-based 2D plotting
+
 
 def _get_orientation_axis(orientation: str) -> int:
     """
@@ -313,8 +335,8 @@ def _smooth_contour_path(coords: np.ndarray, sigma: float) -> np.ndarray:
     n = len(coords)
     ys = np.tile(coords[:, 0], 3)
     xs = np.tile(coords[:, 1], 3)
-    ys_s = uniform_filter1d(ys, size=size)[n:2 * n]
-    xs_s = uniform_filter1d(xs, size=size)[n:2 * n]
+    ys_s = uniform_filter1d(ys, size=size)[n : 2 * n]
+    xs_s = uniform_filter1d(xs, size=size)[n : 2 * n]
     return np.column_stack([ys_s, xs_s])
 
 
@@ -374,14 +396,22 @@ def _draw_smooth_contours(
             if len(contour) < 4:
                 continue
             smooth = _smooth_contour_path(contour, sigma=sigma)
-            x_um = np.append(smooth[:, 1] * x_scale + x0,
-                             smooth[0, 1] * x_scale + x0)
-            y_um = np.append(smooth[:, 0] * y_scale + y0,
-                             smooth[0, 0] * y_scale + y0)
-            ax.plot(x_um, y_um,
-                    color=color, linewidth=linewidth, alpha=alpha,
-                    antialiased=True,
-                    solid_capstyle="round", solid_joinstyle="round")
+            x_um = np.append(
+                smooth[:, 1] * x_scale + x0, smooth[0, 1] * x_scale + x0
+            )
+            y_um = np.append(
+                smooth[:, 0] * y_scale + y0, smooth[0, 0] * y_scale + y0
+            )
+            ax.plot(
+                x_um,
+                y_um,
+                color=color,
+                linewidth=linewidth,
+                alpha=alpha,
+                antialiased=True,
+                solid_capstyle="round",
+                solid_joinstyle="round",
+            )
 
 
 def _draw_region_labels(
@@ -438,12 +468,16 @@ def _draw_region_labels(
             if comp.sum() < min_area:
                 continue
             cy, cx = center_of_mass(comp)
-            bbox_props = dict(
-                boxstyle="round,pad=0.18",
-                facecolor="white",
-                edgecolor="none",
-                alpha=0.70,
-            ) if draw_bbox else None
+            bbox_props = (
+                dict(
+                    boxstyle="round,pad=0.18",
+                    facecolor="white",
+                    edgecolor="none",
+                    alpha=0.70,
+                )
+                if draw_bbox
+                else None
+            )
             ax.text(
                 cx * x_scale + x0,
                 cy * y_scale + y0,
@@ -460,6 +494,7 @@ def _draw_region_labels(
 
 
 # Heatmap class
+
 
 class Heatmap:
     def __init__(
@@ -620,7 +655,6 @@ class Heatmap:
             check_latest=check_latest,
         )
 
-
     def prepare_colors(
         self,
         values: dict,
@@ -659,10 +693,14 @@ class Heatmap:
             return None
         should_annotate = (
             (isinstance(self.annotate_regions, bool) and self.annotate_regions)
-            or (isinstance(self.annotate_regions, list)
-                and region_name in self.annotate_regions)
-            or (isinstance(self.annotate_regions, dict)
-                and region_name in self.annotate_regions.keys())
+            or (
+                isinstance(self.annotate_regions, list)
+                and region_name in self.annotate_regions
+            )
+            or (
+                isinstance(self.annotate_regions, dict)
+                and region_name in self.annotate_regions.keys()
+            )
         )
         if not should_annotate:
             return None
@@ -697,10 +735,14 @@ class Heatmap:
             if region == "root":
                 continue
             region_actor = self.scene.get_actors(
-                br_class="brain region", name=region)[0]
+                br_class="brain region", name=region
+            )[0]
             region_actor.color(color)
             display_text = self.get_region_annotation_text(region_actor.name)
-            if len(region_actor._mesh.vertices) > 0 and display_text is not None:
+            if (
+                len(region_actor._mesh.vertices) > 0
+                and display_text is not None
+            ):
                 self.scene.add_label(actor=region_actor, label=display_text)
 
         if camera is None:
@@ -720,7 +762,8 @@ class Heatmap:
                     "clipping_range": (19531, 40903),
                 }
         self.scene.render(
-            camera=camera, interactive=self.interactive, zoom=self.zoom)
+            camera=camera, interactive=self.interactive, zoom=self.zoom
+        )
         return self.scene
 
     def plot(
@@ -761,17 +804,23 @@ class Heatmap:
         """
         f, ax = plt.subplots(figsize=(9, 9), facecolor=self.background_color)
         f, ax = self.plot_subplot(
-            fig=f, ax=ax,
+            fig=f,
+            ax=ax,
             show_legend=show_legend,
-            xlabel=xlabel, ylabel=ylabel,
+            xlabel=xlabel,
+            ylabel=ylabel,
             hide_axes=hide_axes,
             cbar_label=cbar_label,
             show_cbar=show_cbar,
             **kwargs,
         )
         if filename is not None:
-            plt.savefig(filename, dpi=300, bbox_inches="tight",
-                        facecolor=self.background_color)
+            plt.savefig(
+                filename,
+                dpi=300,
+                bbox_inches="tight",
+                facecolor=self.background_color,
+            )
         plt.show()
         return f
 
@@ -843,8 +892,15 @@ class Heatmap:
                 stacklevel=2,
             )
             return self._plot_subplot_legacy(
-                fig, ax, show_legend, xlabel, ylabel,
-                hide_axes, cbar_label, show_cbar, **kwargs
+                fig,
+                ax,
+                show_legend,
+                xlabel,
+                ylabel,
+                hide_axes,
+                cbar_label,
+                show_cbar,
+                **kwargs,
             )
 
         # Build ID
@@ -856,7 +912,7 @@ class Heatmap:
             if int(uid) in id_to_acronym
         ]
 
-        # Compute spatial extent in micrometres 
+        # Compute spatial extent in micrometres
         res = self._bg_atlas.resolution
         h_px, w_px = slice_data.shape
         if self.orientation == "frontal":
@@ -870,7 +926,7 @@ class Heatmap:
         y_scale = (extent[2] - extent[3]) / h_px
         imshow_kw = dict(extent=extent, aspect="equal", origin="upper")
 
-        # Derive text/edge colours from background luminance 
+        # Derive text/edge colours from background luminance
         bg_lum = np.mean(mcolors.to_rgb(self.background_color))
         text_color = "black" if bg_lum > 0.5 else "white"
         edge_color = "#333333" if bg_lum > 0.5 else "#aaaaaa"
@@ -905,7 +961,9 @@ class Heatmap:
                 if not mask.any():
                     continue
                 c = (
-                    mcolors.to_rgba(ATLAS_REGION_COLORS[i % len(ATLAS_REGION_COLORS)])
+                    mcolors.to_rgba(
+                        ATLAS_REGION_COLORS[i % len(ATLAS_REGION_COLORS)]
+                    )
                     if self.color_mode == "atlas"
                     else _cmap_obj(i / max(len(visible_acronyms) - 1, 1))
                 )
@@ -915,7 +973,7 @@ class Heatmap:
 
         ax.imshow(bg_canvas, **imshow_kw)
 
-        # Regions of interest in vivid colours 
+        # Regions of interest in vivid colours
         roi_canvas = np.zeros((*slice_data.shape, 4))
         heatmap_arr = np.full(slice_data.shape, np.nan)
         legend_handles = []
@@ -930,19 +988,23 @@ class Heatmap:
 
             elif self.color_mode == "atlas":
                 idx_vis = next(
-                    (j for j, a in enumerate(visible_acronyms) if a == rname), i
+                    (j for j, a in enumerate(visible_acronyms) if a == rname),
+                    i,
                 )
                 c = mcolors.to_rgba(
-                    ATLAS_REGION_COLORS[idx_vis % len(ATLAS_REGION_COLORS)])
+                    ATLAS_REGION_COLORS[idx_vis % len(ATLAS_REGION_COLORS)]
+                )
                 roi_canvas[mask] = (*c[:3], 0.92)
                 legend_handles.append(
-                    mpatches.Patch(color=mcolors.to_hex(c[:3]), label=rname))
+                    mpatches.Patch(color=mcolors.to_hex(c[:3]), label=rname)
+                )
 
             else:  # discrete
                 c = _cmap_obj(i / max(len(self.values) - 1, 1))
                 roi_canvas[mask] = (*c[:3], 0.92)
                 legend_handles.append(
-                    mpatches.Patch(color=mcolors.to_hex(c[:3]), label=rname))
+                    mpatches.Patch(color=mcolors.to_hex(c[:3]), label=rname)
+                )
 
         if self.color_mode in ("atlas", "discrete"):
             ax.imshow(roi_canvas, **imshow_kw)
@@ -972,7 +1034,7 @@ class Heatmap:
             sigma=self.edge_smooth_sigma,
         )
 
-        # Region labels 
+        # Region labels
         if self.show_labels:
             _draw_region_labels(
                 ax=ax,
@@ -993,7 +1055,7 @@ class Heatmap:
                 min_area=self.label_min_area,
             )
 
-        # Region annotations (original behaviour) 
+        # Region annotations (original behaviour)
         if self.annotate_regions:
             for rname in self.values:
                 display_text = self.get_region_annotation_text(rname)
@@ -1020,15 +1082,19 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
+                        cmap=mpl.colormaps.get_cmap(
+                            self.cmap, len(self.values)
+                        ),
                     ),
                     cax=cax,
                 )
                 cbar.ax.set_yticklabels(
-                    [r.strip() for r in self.values.keys()])
+                    [r.strip() for r in self.values.keys()]
+                )
             else:
                 cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
@@ -1044,7 +1110,7 @@ class Heatmap:
                 title_fontsize=8,
             )
 
-        # Axis styling 
+        # Axis styling
         ax.set(title=self.title)
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
@@ -1090,9 +1156,16 @@ class Heatmap:
             name, segment_nr = r.split("_segment_")
             x, y = coords[:, 0], coords[:, 1]
             area = 0.5 * np.abs(
-                np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1)))
-            segments.append(dict(name=name, segment_nr=int(segment_nr),
-                                 coords=coords, area=area))
+                np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
+            )
+            segments.append(
+                dict(
+                    name=name,
+                    segment_nr=int(segment_nr),
+                    coords=coords,
+                    area=area,
+                )
+            )
         segments.sort(key=lambda s: s["area"], reverse=True)
 
         for segment in segments:
@@ -1100,10 +1173,12 @@ class Heatmap:
             segment_nr = segment["segment_nr"]
             coords = segment["coords"]
             ax.fill(
-                coords[:, 0], coords[:, 1],
+                coords[:, 0],
+                coords[:, 1],
                 color=self.colors[name],
                 label=name if segment_nr == "0" and name != "root" else None,
-                lw=1, ec="k",
+                lw=1,
+                ec="k",
                 zorder=-1 if name == "root" else None,
                 alpha=0.3 if name == "root" else None,
             )
@@ -1111,8 +1186,13 @@ class Heatmap:
             if display_text is not None:
                 pos = find_annotation_position_inside_polygon(coords)
                 if pos is not None:
-                    ax.annotate(display_text, xy=pos, ha="center", va="center",
-                                **(self.annotate_text_options_2d or {}))
+                    ax.annotate(
+                        display_text,
+                        xy=pos,
+                        ha="center",
+                        va="center",
+                        **(self.annotate_text_options_2d or {}),
+                    )
 
         if show_cbar:
             divider = make_axes_locatable(ax)
@@ -1122,13 +1202,19 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
-                    ), cax=cax)
+                        cmap=mpl.colormaps.get_cmap(
+                            self.cmap, len(self.values)
+                        ),
+                    ),
+                    cax=cax,
+                )
                 cbar.ax.set_yticklabels(
-                    [r.strip() for r in self.values.keys()])
+                    [r.strip() for r in self.values.keys()]
+                )
             else:
                 cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax)
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
