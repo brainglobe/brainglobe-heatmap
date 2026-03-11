@@ -113,6 +113,7 @@ class Heatmap:
         label_regions: Optional[bool] = False,
         annotate_regions: Optional[Union[bool, List[str], Dict]] = False,
         annotate_text_options_2d: Optional[Dict] = None,
+        alpha: Optional[Union[float, Dict[str, float]]] = None,
         check_latest: bool = True,
         **kwargs,
     ):
@@ -168,6 +169,14 @@ class Heatmap:
             Options for customizing region annotations text in 2D format.
             matplotlib.text parameters
             Default is None
+        alpha : float or dict, optional
+            Transparency of brain regions in 3D format.
+            If a float, the same alpha is applied to all regions.
+            If a dict, maps region acronyms to individual alpha values.
+            Values must be between 0.0 (fully transparent) and
+            1.0 (fully opaque). Regions not present in a dict keep
+            their default opacity. Has no effect in 2D format.
+            Default is None.
         check_latest : bool, optional
             Check for the latest version of the atlas. Default is True.
         """
@@ -182,6 +191,27 @@ class Heatmap:
         self.label_regions = label_regions
         self.annotate_regions = annotate_regions
         self.annotate_text_options_2d = annotate_text_options_2d
+
+        # validate and store alpha
+        if alpha is not None:
+            if isinstance(alpha, (int, float)):
+                if not 0.0 <= float(alpha) <= 1.0:
+                    raise ValueError(
+                        f"`alpha` must be between 0.0 and 1.0, got {alpha}"
+                    )
+            elif isinstance(alpha, dict):
+                for region_name, alpha_val in alpha.items():
+                    if not 0.0 <= float(alpha_val) <= 1.0:
+                        raise ValueError(
+                            f"`alpha` for region '{region_name}' must be "
+                            f"between 0.0 and 1.0, got {alpha_val}"
+                        )
+            else:
+                raise TypeError(
+                    f"`alpha` must be a float or a dict mapping region "
+                    f"acronyms to floats, got {type(alpha)}"
+                )
+        self.alpha = alpha
 
         # create a scene
         self.scene = Scene(
@@ -304,6 +334,14 @@ class Heatmap:
                 br_class="brain region", name=region
             )[0]
             region_actor.color(color)
+
+            # apply transparency if requested
+            if self.alpha is not None:
+                if isinstance(self.alpha, dict):
+                    if region in self.alpha:
+                        region_actor.alpha(float(self.alpha[region]))
+                else:
+                    region_actor.alpha(float(self.alpha))
 
             display_text = self.get_region_annotation_text(region_actor.name)
 
