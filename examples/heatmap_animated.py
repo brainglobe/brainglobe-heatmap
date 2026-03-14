@@ -1,12 +1,14 @@
 """Animated 2D heatmap example with fixed color normalization across frames."""
 
 from pathlib import Path
-import brainglobe_heatmap as bgh
+
 import matplotlib.pyplot as plt
 from brainglobe_atlasapi import BrainGlobeAtlas
 from matplotlib.animation import FuncAnimation
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import Normalize
+
+import brainglobe_heatmap as bgh
 
 values = {
     "TH": 1,
