@@ -19,7 +19,7 @@ VALUES = {
 
 @pytest.fixture
 def mock_projected():
-    """Fixture providing mock projected slice data with TH, HIP, and VIS visible."""
+    """Fixture: mock projected slice data with TH, HIP, VIS visible."""
     return {
         "TH_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
         "TH_segment_1": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
@@ -109,7 +109,7 @@ def test_no_region_labels_when_label_regions_false(heatmap_2d, mock_projected):
 def test_region_labels_shown_when_label_regions_true(
     heatmap_2d, mock_projected
 ):
-    """set_ticks must be called once when label_regions=True and show_cbar=True."""
+    """set_ticks called once when label_regions=True and show_cbar=True."""
     heatmap_2d.label_regions = True
     _, mock_colorbar = _show_with_mocks(
         heatmap_2d, mock_projected, show_cbar=True
@@ -118,7 +118,7 @@ def test_region_labels_shown_when_label_regions_true(
 
 
 def test_region_labels_match_visible_regions(heatmap_2d, mock_projected):
-    """Colorbar labels must only include visible regions within vmin/vmax range."""
+    """Colorbar labels must only include visible regions in vmin/vmax range."""
     heatmap_2d.label_regions = True
     _, mock_colorbar = _show_with_mocks(
         heatmap_2d, mock_projected, show_cbar=True
@@ -127,9 +127,10 @@ def test_region_labels_match_visible_regions(heatmap_2d, mock_projected):
     region_labels = kwargs["labels"]
     tick_values = kwargs["ticks"]
 
-    visible_regions = {"TH", "HIP", "VIS"}  # from mock_projected, excluding root
+    visible_regions = {"TH", "HIP", "VIS"}  # from mock_projected, no root
     expected_regions = {
-        r for r in visible_regions
+        r
+        for r in visible_regions
         if heatmap_2d.vmin <= VALUES[r] <= heatmap_2d.vmax
     }
 
@@ -185,7 +186,7 @@ def test_cbar_label_not_set_when_not_provided(heatmap_2d, mock_projected):
 
 
 def test_cbar_label_hidden_when_show_cbar_false(heatmap_2d, mock_projected):
-    """set_label must not be called when show_cbar=False even with cbar_label set."""
+    """set_label not called when show_cbar=False with cbar_label set."""
     _, mock_colorbar = _show_with_mocks(
         heatmap_2d,
         mock_projected,
@@ -210,9 +211,7 @@ def test_colorbar_empty_when_no_visible_regions(heatmap_2d):
 def test_colorbar_empty_when_only_root_visible(heatmap_2d):
     """Colorbar ticks must be empty when only root segment is visible."""
     heatmap_2d.label_regions = True
-    projected = {
-        "root_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
-    }
+    projected = {"root_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]])}
     _, mock_colorbar = _show_with_mocks(heatmap_2d, projected, show_cbar=True)
     _, kwargs = mock_colorbar.set_ticks.call_args
     assert len(kwargs["ticks"]) == 0
@@ -223,9 +222,7 @@ def test_colorbar_single_region(heatmap_2d):
     """Colorbar must show exactly one tick when one region is visible."""
     heatmap_2d.label_regions = True
     heatmap_2d.values = {"TH": 1.0}
-    projected = {
-        "TH_segment_1": np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
-    }
+    projected = {"TH_segment_1": np.array([[0, 0], [1, 0], [1, 1], [0, 1]])}
     _, mock_colorbar = _show_with_mocks(heatmap_2d, projected, show_cbar=True)
     _, kwargs = mock_colorbar.set_ticks.call_args
     assert len(kwargs["ticks"]) == 1
@@ -235,7 +232,7 @@ def test_colorbar_single_region(heatmap_2d):
 
 
 def test_colorbar_empty_when_all_values_outside_range(heatmap_2d):
-    """Colorbar ticks must be empty when all region values are outside vmin/vmax."""
+    """Colorbar ticks must be empty when all values are outside vmin/vmax."""
     heatmap_2d.label_regions = True
     heatmap_2d.values = {"TH": -6.2, "VIS": 4.1}
     projected = {
