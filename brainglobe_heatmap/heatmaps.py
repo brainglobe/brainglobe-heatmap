@@ -75,7 +75,7 @@ def find_annotation_position_inside_polygon(
       splitting self-intersecting areas into separate valid polygons.
       When this happens, the function gets the largest polygon by area.
     - Uses Shapely's polylabel algorithm with a tolerance of 0.1
-      that accepts a polygon after edge cases resolved.
+      that accepts a polygon after edge cases are resolved.
     """
     if polygon_vertices.shape[0] < 4:
         return None
