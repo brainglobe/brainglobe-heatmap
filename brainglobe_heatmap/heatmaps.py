@@ -529,13 +529,15 @@ class Heatmap:
             # cmap = mpl.cm.cool
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             if self.label_regions is True:
-               cbar = fig.colorbar(
-                  mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap),  # ✅ use norm
-                     cax=cax,
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(
+                        norm=norm, cmap=self.cmap
+                    ),  # ✅ use norm
+                    cax=cax,
                 )
             else:
                 cbar = fig.colorbar(
-                   mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
                 )
 
             if cbar_label is not None:
@@ -556,8 +558,7 @@ class Heatmap:
                 region_values = [v for r, v in filtered]
                 cbar.set_ticks(region_values)
                 cbar.set_ticklabels(region_names, fontsize=8)
-                
-                
+
         # style axes
         ax.invert_yaxis()
         ax.axis("equal")
