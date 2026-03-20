@@ -529,26 +529,35 @@ class Heatmap:
             # cmap = mpl.cm.cool
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
             if self.label_regions is True:
-                cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(
-                        norm=None,
-                        cmap=mpl.cm.get_cmap(self.cmap, len(self.values)),
-                    ),
-                    cax=cax,
+               cbar = fig.colorbar(
+                  mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap),  # ✅ use norm
+                     cax=cax,
                 )
             else:
                 cbar = fig.colorbar(
-                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                   mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
                 )
 
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
             if self.label_regions is True:
-                cbar.ax.set_yticklabels(
-                    [r.strip() for r in self.values.keys()]
+                # sort regions by value to avoid overlapping labels
+                sorted_regions = sorted(
+                    self.values.items(), key=lambda x: x[1]
                 )
-
+                # filter out labels too close to each other
+                min_gap = (self.vmax - self.vmin) * 0.05
+                filtered = [sorted_regions[0]]
+                for region in sorted_regions[1:]:
+                    if abs(region[1] - filtered[-1][1]) >= min_gap:
+                        filtered.append(region)
+                region_names = [r for r, v in filtered]
+                region_values = [v for r, v in filtered]
+                cbar.set_ticks(region_values)
+                cbar.set_ticklabels(region_names, fontsize=8)
+                
+                
         # style axes
         ax.invert_yaxis()
         ax.axis("equal")
