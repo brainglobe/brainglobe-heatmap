@@ -104,7 +104,7 @@ class Heatmap:
         cmap: str = "Reds",
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
-        format: str = "3D",  # 3D -> brainrender, 2D -> matplotlib
+        format: str = "3D",  # 3D -> brainrender, 2D/2D_multi -> matplotlib
         # brainrender, 3D HM specific
         thickness: float = 10,
         interactive: bool = True,
@@ -117,8 +117,9 @@ class Heatmap:
         **kwargs,
     ):
         """
-        Creates a heatmap visualization of the provided values in 3D or 2D
-        using brainrender or matplotlib in the specified atlas.
+        Creates a heatmap visualization of the provided values
+        in 3D, 2D, or 2D_multi using brainrender or matplotlib
+        in the specified atlas.
 
         Parameters
         ----------
@@ -143,7 +144,8 @@ class Heatmap:
             Maximum value for the colormap. Default is None.
         format : str, optional
             Format of the heatmap visualization.
-            "3D" for brainrender or "2D" for matplotlib. Default is "3D".
+            "3D" for brainrender, "2D" for matplotlib,
+            or "2D_multi" for matplotlib subplots. Default is "3D".
         thickness : float, optional
             Thickness of the slicing plane in the brainrender scene.
             Default is 10.
@@ -155,17 +157,18 @@ class Heatmap:
             Name of the atlas to use for the heatmap.
             If None allen_mouse_25um is used. Default is None.
         label_regions : bool, optional
-            If True, labels the regions on the colorbar (only valid in 2D).
+            If True, labels the regions on the colorbar
+            (only valid in 2D/2D_multi).
             Default is False.
         annotate_regions :
             bool, List[str], Dict[str, Union[str, float, int]], optional
-            Controls region annotation in 2D and 3D format.
+            Controls region annotation in 2D, 2D_multi, and 3D format.
             If True, annotates all regions with their names.
             If a list, annotates only the specified regions.
             If a dict, uses custom text/values for annotations.
             Default is False.
         annotate_text_options_2d : dict, optional
-            Options for customizing region annotations text in 2D format.
+            Options for customizing region annotations text in 2D formats.
             matplotlib.text parameters
             Default is None
         check_latest : bool, optional
@@ -189,6 +192,11 @@ class Heatmap:
                 raise ValueError(
                     "List of positions not supported in 3D format. "
                     "Did you mean to use a tuple as a 3D position?"
+                )
+            if self.format == "2D":
+                raise ValueError(
+                    "List of positions not supported in 2D format. "
+                    "Did you mean to use '2D_multi' format?"
                 )
             if len(position) <= 1:
                 raise ValueError(
@@ -221,10 +229,14 @@ class Heatmap:
         ]
 
         # Use the same orientation for all slicers as requested
-        self.slicers = [
-            Slicer(pos, orientation, thickness, self.scene.root)
-            for pos in self.positions
-        ]
+        self.slicer = Slicer(
+            self.positions[0], orientation, thickness, self.scene.root
+        )
+        if self.format == "2D_multi":
+            self.slicers = [
+                Slicer(pos, orientation, thickness, self.scene.root)
+                for pos in self.positions
+            ]
 
     def prepare_colors(
         self,
@@ -291,10 +303,10 @@ class Heatmap:
 
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
-        Creates a 2D plot or 3D rendering of the heatmap
+        Creates a 2D plot, 2D_multi subplots, or 3D rendering of the heatmap
         """
         if self.format == "3D":
-            self.slicers[0].slice_scene(self.scene, self.regions_meshes)
+            self.slicer.slice_scene(self.scene, self.regions_meshes)
             view = self.render(**kwargs)
         else:
             view = self.plot(**kwargs)
@@ -346,7 +358,7 @@ class Heatmap:
                     camera = self.orientation
             else:
                 self.orientation = np.array(self.orientation)
-                com = self.slicers[0].plane0.center_of_mass()
+                com = self.slicer.plane0.center_of_mass()
                 camera = {
                     "pos": com - self.orientation * 2 * np.linalg.norm(com),
                     "viewup": (0, -1, 0),
@@ -395,9 +407,8 @@ class Heatmap:
         max_plots_per_fig : int, optional
             Maximum subplots per figure. Default is 25.
         """
-        num_slices = len(self.slicers)
-
-        if num_slices > 1:
+        if self.format == "2D_multi":
+            num_slices = len(self.slicers)
             num_figures = (
                 num_slices + max_plots_per_fig - 1
             ) // max_plots_per_fig
@@ -476,7 +487,7 @@ class Heatmap:
             f, ax = self.plot_subplot(
                 fig=f,
                 ax=ax,
-                slicer=self.slicers[0],
+                slicer=self.slicer,
                 show_legend=show_legend,
                 xlabel=xlabel,
                 ylabel=ylabel,
@@ -551,7 +562,7 @@ class Heatmap:
         This method modifies the provided figure and axes objects in-place.
         """
         if slicer is None:
-            slicer = self.slicers[0]
+            slicer = self.slicer
 
         projected, _ = slicer.get_structures_slice_coords(
             self.regions_meshes, self.scene.root
