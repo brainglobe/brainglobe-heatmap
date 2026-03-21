@@ -199,19 +199,6 @@ class Heatmap:
         else:
             self.positions = [position]
 
-        # if np.ndim(position) == 0:
-        #     positions = [position]
-        # elif (
-        #     isinstance(position, (list, tuple, np.ndarray))
-        #     and len(position) == 3
-        #     and not isinstance(position[0], (list, tuple, np.ndarray))
-        # ):
-        #     # It's a single 3D point [x, y, z]
-        #     positions = [position]
-        # else:
-        #     # It's a list of positions (either scalars or vectors)
-        #     positions = position
-
         # create a scene
         self.scene = Scene(
             atlas_name=atlas_name,
