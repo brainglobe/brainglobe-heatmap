@@ -372,6 +372,9 @@ class Heatmap:
 
     def plot(
         self,
+        nrows: int = 1,
+        ncols: int = 1,
+        figsize: tuple = (26.25, 15),
         show_legend: bool = False,
         xlabel: str = "µm",
         ylabel: str = "µm",
@@ -379,17 +382,22 @@ class Heatmap:
         filename: Optional[str] = None,
         cbar_label: Optional[str] = None,
         show_cbar: bool = True,
-        max_plots_per_fig: int = 25,
         **kwargs,
     ) -> Union[plt.Figure, List[plt.Figure]]:
         """
         Plots the heatmap in 2D using matplotlib.
 
-        If the number of slices exceeds max_plots_per_fig, they are split
+        If the number of slices exceeds nrows * ncols, they are split
         into multiple figures.
 
         Parameters
         ----------
+        nrows : int, optional
+            Number of rows in the figure. Default is 1.
+        ncols : int, optional
+            Number of columns in the figure. Default is 1.
+        figsize : tuple, optional
+            Figure size. Default is (26.25, 15).
         show_legend : bool, optional
             If True, displays a legend for the plotted regions.
         xlabel : str, optional
@@ -404,10 +412,10 @@ class Heatmap:
             Label for the colorbar.
         show_cbar : bool, optional
             Display a colorbar.
-        max_plots_per_fig : int, optional
-            Maximum subplots per figure. Default is 25.
         """
         if self.format == "2D_multi":
+            max_plots_per_fig = nrows * ncols
+
             num_slices = len(self.slicers)
             num_figures = (
                 num_slices + max_plots_per_fig - 1
@@ -420,14 +428,14 @@ class Heatmap:
                 end_idx = min((fig_idx + 1) * max_plots_per_fig, num_slices)
                 current_num_slices = end_idx - start_idx
 
-                nrows = int(np.ceil(np.sqrt(current_num_slices)))
-                ncols = int(np.ceil(current_num_slices / nrows))
+                # nrows = int(np.ceil(np.sqrt(current_num_slices)))
+                # ncols = int(np.ceil(current_num_slices / nrows))
 
                 f, axes = plt.subplots(
                     nrows,
                     ncols,
                     layout="constrained",
-                    figsize=(26.25, 15),  # 7:4 aspect ratio
+                    figsize=figsize,
                 )
 
                 # padding (left, bottom, right, top) [0-1]%
@@ -482,7 +490,7 @@ class Heatmap:
 
             return all_figures
         else:
-            f, ax = plt.subplots(figsize=(9, 9))
+            f, ax = plt.subplots(figsize=figsize)
 
             f, ax = self.plot_subplot(
                 fig=f,

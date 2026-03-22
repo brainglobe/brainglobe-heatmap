@@ -16,9 +16,9 @@ scene = bgh.Heatmap(
     position=[7500, 8000, 8500, 9000, 9500, 9500, 9500, 9500],
     orientation="frontal",
     thickness=10,
-    format="2D",
+    format="2D_multi",
     cmap="Reds",
     vmin=0,
     vmax=1,
     label_regions=False,
-).plot()
+).plot(nrows=4, ncols=2)
