@@ -42,9 +42,7 @@ class FakePlane:
         ),
     ],
 )
-def test_print_plane_outputs_plane_attributes(
-    center, normal, u, v, capsys
-):
+def test_print_plane_outputs_plane_attributes(center, normal, u, v, capsys):
     plane = FakePlane(center, normal, u, v)
     print_plane("test plane", plane, "blue")
 
@@ -121,9 +119,7 @@ def test_plan_stores_arrow_scale(mock_print, mock_init):
     p = plan.__new__(plan)
     p.slicer = MagicMock()
 
-    plan.__init__(
-        p, {"TH": 1}, position=(5000,), arrow_scale=750
-    )
+    plan.__init__(p, {"TH": 1}, position=(5000,), arrow_scale=750)
     assert p.arrow_scale == 750
 
 
@@ -207,9 +203,7 @@ def test_show_returns_scene():
     result = p.show()
 
     assert result is mock_scene
-    mock_scene.render.assert_called_once_with(
-        interactive=False, zoom=None
-    )
+    mock_scene.render.assert_called_once_with(interactive=False, zoom=None)
 
 
 def test_show_sets_root_alpha():
