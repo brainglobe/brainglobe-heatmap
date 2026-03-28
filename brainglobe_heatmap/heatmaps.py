@@ -1082,9 +1082,7 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.colormaps.get_cmap(
-                            self.cmap, len(self.values)
-                        ),
+                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
                     ),
                     cax=cax,
                 )
@@ -1202,12 +1200,8 @@ class Heatmap:
                 cbar = fig.colorbar(
                     mpl.cm.ScalarMappable(
                         norm=None,
-                        cmap=mpl.colormaps.get_cmap(
-                            self.cmap, len(self.values)
-                        ),
-                    ),
-                    cax=cax,
-                )
+                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
+                    ), cax=cax)
                 cbar.ax.set_yticklabels(
                     [r.strip() for r in self.values.keys()]
                 )
