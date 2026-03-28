@@ -842,9 +842,27 @@ class Heatmap:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+<<<<<<< HEAD
             cbar = fig.colorbar(
                 mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
             )
+=======
+            if self.label_regions is True:
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(
+                        norm=None,
+                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
+                    ),
+                    cax=cax,
+                )
+                cbar.ax.set_yticklabels(
+                    [r.strip() for r in self.values.keys()]
+                )
+            else:
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
+>>>>>>> 3ba525f (test: boost coverage to ~75%+ and fix get_cmap() compatibility)
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
@@ -973,9 +991,25 @@ class Heatmap:
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.05)
             norm = mpl.colors.Normalize(vmin=self.vmin, vmax=self.vmax)
+<<<<<<< HEAD
             cbar = fig.colorbar(
                 mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
             )
+=======
+            if self.label_regions is True:
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(
+                        norm=None,
+                        cmap=mpl.colormaps.get_cmap(self.cmap, len(self.values)),
+                    ), cax=cax)
+                cbar.ax.set_yticklabels(
+                    [r.strip() for r in self.values.keys()]
+                )
+            else:
+                cbar = fig.colorbar(
+                    mpl.cm.ScalarMappable(norm=norm, cmap=self.cmap), cax=cax
+                )
+>>>>>>> 3ba525f (test: boost coverage to ~75%+ and fix get_cmap() compatibility)
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
