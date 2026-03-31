@@ -85,17 +85,23 @@ class Test_InvalidInput:
 
     def test_none_input_raises(self, mock_atlas):
         values = {"RSP": None}
-        with pytest.raises(ValueError, match="Heatmap values should be floats"):
+        with pytest.raises(
+            ValueError, match="Heatmap values should be floats"
+        ):
             check_values(values, mock_atlas)
 
     def test_string_input_raises(self, mock_atlas):
         values = {"TH": "one"}
-        with pytest.raises(ValueError, match="Heatmap values should be floats"):
+        with pytest.raises(
+            ValueError, match="Heatmap values should be floats"
+        ):
             check_values(values, mock_atlas)
 
     def test_list_input_raises(self, mock_atlas):
         values = {"TH": [0, 1, 0.9]}
-        with pytest.raises(ValueError, match="Heatmap values should be floats"):
+        with pytest.raises(
+            ValueError, match="Heatmap values should be floats"
+        ):
             check_values(values, mock_atlas)
 
     def test_unknown_region_raises(self, mock_atlas):
