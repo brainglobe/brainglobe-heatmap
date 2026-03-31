@@ -80,8 +80,42 @@ class Plane:
             pieces = intersection.split()  # intersection.split() in newer vedo
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
-                points = piece.join(reset=True).vertices
+                points = self._join_reset(piece).vertices
                 projected[actor.name + f"_segment_{piece_n}"] = self.p3_to_p2(
                     points
                 )
         return projected
+
+    @staticmethod
+    def _join_reset(piece: vd.Mesh) -> vd.Mesh:
+        """
+        Replicates vedo's Mesh.join(reset=True) with MaximumLength
+        raised from the default 1000.
+
+        NOTE: Deprecate when able to SetMaximumLength
+        for vtkStripper easily or on Mesh.join()
+        See vedo/mesh/core.py Mesh.join() for the original source.
+        v2026.6.1
+        """
+        sf = vtk.vtkStripper()
+        sf.SetMaximumLength(100000)
+        sf.SetPassThroughCellIds(True)
+        sf.SetPassThroughPointIds(True)
+        sf.SetJoinContiguousSegments(True)
+        sf.SetInputData(piece.dataset)
+        sf.Update()
+
+        # reset True
+        poly = sf.GetOutput()
+        cpd = vtk.vtkCleanPolyData()
+        cpd.PointMergingOn()
+        cpd.ConvertLinesToPointsOn()
+        cpd.ConvertPolysToLinesOn()
+        cpd.ConvertStripsToPolysOn()
+        cpd.SetInputData(poly)
+        cpd.Update()
+        poly = cpd.GetOutput()
+        vpts = poly.GetCell(0).GetPoints().GetData()
+        poly.GetPoints().SetData(vpts)
+
+        return vd.Mesh(poly)
