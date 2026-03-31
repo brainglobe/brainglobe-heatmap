@@ -11,6 +11,7 @@ settings.OFFSCREEN = True
 
 mpl.use("Agg")
 
+
 EXAMPLE_VALUES = {
     "TH": 1,
     "RSP": 0.2,
@@ -215,4 +216,52 @@ def test_dict_alpha_render_applies_to_matching_regions():
     actors = heatmap.scene.get_actors(br_class="brain region", name="HIP")
     if actors:
         assert actors[0].alpha() == pytest.approx(0.3, abs=0.05)
+    heatmap.scene.close()
+
+
+def test_render_global_alpha_calls_actor_alpha(heatmap_3d_global_alpha):
+    """render() must call actor.alpha() for every region when alpha is a float."""
+    mock_actor = MagicMock()
+    mock_actor.name = "mock_region"
+    mock_actor._mesh.vertices = []
+
+    with patch.object(
+        heatmap_3d_global_alpha.scene,
+        "get_actors",
+        return_value=[mock_actor],
+    ):
+        heatmap_3d_global_alpha.render()
+
+    mock_actor.alpha.assert_called_with(0.4)
+
+
+def test_render_dict_alpha_calls_actor_alpha_for_matching_region():
+    """render() must call actor.alpha() only for regions in the dict."""
+    heatmap = bgh.Heatmap(
+        EXAMPLE_VALUES,
+        format="3D",
+        alpha={"TH": 0.9},
+        **COMMON_PARAMS,
+    )
+
+    mock_actors = {}
+    for region in EXAMPLE_VALUES:
+        actor = MagicMock()
+        actor.name = region
+        actor._mesh.vertices = []
+        mock_actors[region] = actor
+
+    def fake_get_actors(br_class=None, name=None):
+        return [mock_actors[name]]
+
+    with patch.object(
+        heatmap.scene, "get_actors", side_effect=fake_get_actors
+    ):
+        heatmap.render()
+
+    # TH is in the dict — alpha should be called
+    mock_actors["TH"].alpha.assert_called_with(0.9)
+    # HIP and RSP are not in the dict — alpha should NOT be called
+    mock_actors["HIP"].alpha.assert_not_called()
+    mock_actors["RSP"].alpha.assert_not_called()
     heatmap.scene.close()
