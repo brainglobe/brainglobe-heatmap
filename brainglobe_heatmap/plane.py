@@ -72,6 +72,8 @@ class Plane:
         projected = {}
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
+            if not mesh.is_closed():
+                mesh = mesh.clone().cap()
             intersection = self.intersect_with(mesh)
             if not intersection.vertices.shape[0]:
                 continue
