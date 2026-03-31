@@ -55,6 +55,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           secret-codecov-token: ${{ secrets.CODECOV_TOKEN }}
+        env:
+          MPLBACKEND: Agg
 
 
       - name: Notify slack on scheduled failure
