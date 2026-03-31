@@ -1,5 +1,5 @@
 """
-Root conftest.py for brainglobe-heatmap test suite.
+conftest.py for brainglobe-heatmap test suite.
 
 Sets the matplotlib backend to a non-interactive one (Agg) before any test
 module is collected or imported. This must happen here — at the earliest

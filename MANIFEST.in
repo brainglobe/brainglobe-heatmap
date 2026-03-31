@@ -9,4 +9,3 @@ recursive-exclude docs *
 recursive-exclude tests *
 recursive-exclude examples *
 recursive-exclude images *
-include *.py
