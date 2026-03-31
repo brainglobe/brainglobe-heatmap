@@ -220,7 +220,8 @@ def test_dict_alpha_render_applies_to_matching_regions():
 
 
 def test_render_global_alpha_calls_actor_alpha(heatmap_3d_global_alpha):
-    """render() must call actor.alpha() for every region when alpha is a float."""
+    """render() must call actor.alpha() for every region
+    when alpha is a float."""
     mock_actor = MagicMock()
     mock_actor.name = "mock_region"
     mock_actor._mesh.vertices = []
