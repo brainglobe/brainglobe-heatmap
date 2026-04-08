@@ -104,7 +104,7 @@ class Heatmap:
         cmap: str = "Reds",
         vmin: Optional[float] = None,
         vmax: Optional[float] = None,
-        format: str = "3D",  # 3D -> brainrender, 2D -> matplotlib
+        format: str = "3D",  # 3D -> brainrender, 2D/2D_multi -> matplotlib
         # brainrender, 3D HM specific
         thickness: float = 10,
         interactive: bool = True,
@@ -117,8 +117,9 @@ class Heatmap:
         **kwargs,
     ):
         """
-        Creates a heatmap visualization of the provided values in 3D or 2D
-        using brainrender or matplotlib in the specified atlas.
+        Creates a heatmap visualization of the provided values
+        in 3D, 2D, or 2D_multi using brainrender or matplotlib
+        in the specified atlas.
 
         Parameters
         ----------
@@ -126,7 +127,7 @@ class Heatmap:
             Dictionary with brain regions acronyms as keys and
             magnitudes as the values.
         position : list, tuple, np.ndarray, float
-            Position of the plane in the atlas.
+            Position or list of positions of the plane(s) in the atlas.
         orientation : str or tuple, optional
             Orientation of the plane in the atlas. Either, "frontal",
             "sagittal", "horizontal" or a tuple with the normal vector.
@@ -143,7 +144,8 @@ class Heatmap:
             Maximum value for the colormap. Default is None.
         format : str, optional
             Format of the heatmap visualization.
-            "3D" for brainrender or "2D" for matplotlib. Default is "3D".
+            "3D" for brainrender, "2D" for matplotlib,
+            or "2D_multi" for matplotlib subplots. Default is "3D".
         thickness : float, optional
             Thickness of the slicing plane in the brainrender scene.
             Default is 10.
@@ -155,17 +157,18 @@ class Heatmap:
             Name of the atlas to use for the heatmap.
             If None allen_mouse_25um is used. Default is None.
         label_regions : bool, optional
-            If True, labels the regions on the colorbar (only valid in 2D).
+            If True, labels the regions on the colorbar
+            (only valid in 2D/2D_multi).
             Default is False.
         annotate_regions :
             bool, List[str], Dict[str, Union[str, float, int]], optional
-            Controls region annotation in 2D and 3D format.
+            Controls region annotation in 2D, 2D_multi, and 3D format.
             If True, annotates all regions with their names.
             If a list, annotates only the specified regions.
             If a dict, uses custom text/values for annotations.
             Default is False.
         annotate_text_options_2d : dict, optional
-            Options for customizing region annotations text in 2D format.
+            Options for customizing region annotations text in 2D formats.
             matplotlib.text parameters
             Default is None
         check_latest : bool, optional
@@ -182,6 +185,27 @@ class Heatmap:
         self.label_regions = label_regions
         self.annotate_regions = annotate_regions
         self.annotate_text_options_2d = annotate_text_options_2d
+        # Prepare positions as a list
+
+        if isinstance(position, list):
+            if self.format == "3D":
+                raise ValueError(
+                    "List of positions not supported in 3D format. "
+                    "Did you mean to use a tuple as a 3D position?"
+                )
+            if self.format == "2D":
+                raise ValueError(
+                    "List of positions not supported in 2D format. "
+                    "Did you mean to use '2D_multi' format?"
+                )
+            if len(position) <= 1:
+                raise ValueError(
+                    "List of positions should contain more than one position. "
+                    "Did you mean to pass a single value?"
+                )
+            self.positions = position
+        else:
+            self.positions = [position]
 
         # create a scene
         self.scene = Scene(
@@ -204,8 +228,15 @@ class Heatmap:
             if r.name != "root"
         ]
 
-        # prepare slicer object
-        self.slicer = Slicer(position, orientation, thickness, self.scene.root)
+        # Use the same orientation for all slicers as requested
+        self.slicer = Slicer(
+            self.positions[0], orientation, thickness, self.scene.root
+        )
+        if self.format == "2D_multi":
+            self.slicers = [
+                Slicer(pos, orientation, thickness, self.scene.root)
+                for pos in self.positions
+            ]
 
     def prepare_colors(
         self,
@@ -272,7 +303,7 @@ class Heatmap:
 
     def show(self, **kwargs) -> Union[Scene, plt.Figure]:
         """
-        Creates a 2D plot or 3D rendering of the heatmap
+        Creates a 2D plot, 2D_multi subplots, or 3D rendering of the heatmap
         """
         if self.format == "3D":
             self.slicer.slice_scene(self.scene, self.regions_meshes)
@@ -341,6 +372,9 @@ class Heatmap:
 
     def plot(
         self,
+        nrows: int = 1,
+        ncols: int = 1,
+        figsize: tuple = (26.25, 15),
         show_legend: bool = False,
         xlabel: str = "µm",
         ylabel: str = "µm",
@@ -349,77 +383,148 @@ class Heatmap:
         cbar_label: Optional[str] = None,
         show_cbar: bool = True,
         **kwargs,
-    ) -> plt.Figure:
+    ) -> Union[plt.Figure, List[plt.Figure]]:
         """
         Plots the heatmap in 2D using matplotlib.
 
-        This method generates a 2D visualization of the heatmap data in
-        a standalone matplotlib figure.
+        If the number of slices exceeds nrows * ncols, they are split
+        into multiple figures.
 
         Parameters
         ----------
+        nrows : int, optional
+            Number of rows in the figure. Default is 1.
+        ncols : int, optional
+            Number of columns in the figure. Default is 1.
+        figsize : tuple, optional
+            Figure size. Default is (26.25, 15).
         show_legend : bool, optional
             If True, displays a legend for the plotted regions.
-            Default is False.
         xlabel : str, optional
             Label for the x-axis. Default is "µm".
         ylabel : str, optional
             Label for the y-axis. Default is "µm".
         hide_axes : bool, optional
-            If True, hides the axes for a cleaner look. Default is False.
+            If True, hides the axes.
         filename : Optional[str], optional
-            Path to save the figure to. If None, the figure is not saved.
-            Default is None.
+            Path to save the figure(s).
         cbar_label : Optional[str], optional
-            Label for the colorbar. If None, no label is displayed.
-            Default is None.
+            Label for the colorbar.
         show_cbar : bool, optional
-            If True, displays a colorbar alongside the subplot.
-            Default is True.
-        **kwargs : dict
-            Additional keyword arguments passed to the plotting function.
-
-        Returns
-        -------
-        plt.Figure
-            The matplotlib figure object for the plot.
-
-        Notes
-        -----
-        This method is used to generate a standalone plot of
-        the heatmap data.
+            Display a colorbar.
         """
+        if self.format == "2D_multi":
+            max_plots_per_fig = nrows * ncols
 
-        f, ax = plt.subplots(figsize=(9, 9))
+            num_slices = len(self.slicers)
+            num_figures = (
+                num_slices + max_plots_per_fig - 1
+            ) // max_plots_per_fig
 
-        f, ax = self.plot_subplot(
-            fig=f,
-            ax=ax,
-            show_legend=show_legend,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            hide_axes=hide_axes,
-            cbar_label=cbar_label,
-            show_cbar=show_cbar,
-            **kwargs,
-        )
+            all_figures = []
+            for fig_idx in range(num_figures):
+                # calculate grid layout for the figure
+                start_idx = fig_idx * max_plots_per_fig
+                end_idx = min((fig_idx + 1) * max_plots_per_fig, num_slices)
+                current_num_slices = end_idx - start_idx
 
-        if filename is not None:
-            plt.savefig(filename, dpi=300)
+                # nrows = int(np.ceil(np.sqrt(current_num_slices)))
+                # ncols = int(np.ceil(current_num_slices / nrows))
 
-        plt.show()
-        return f
+                f, axes = plt.subplots(
+                    nrows,
+                    ncols,
+                    layout="constrained",
+                    figsize=figsize,
+                )
+
+                # padding (left, bottom, right, top) [0-1]%
+                layout_engine = f.get_layout_engine()
+                if layout_engine:
+                    layout_engine.set(rect=(0, 0.01, 1, 0.97))
+
+                if current_num_slices == 1:
+                    axes_flat = [axes]
+                else:
+                    axes_flat = axes.flatten()
+
+                # plot each position into the figure
+                for i in range(current_num_slices):
+                    global_i = start_idx + i
+                    slicer = self.slicers[global_i]
+
+                    self.plot_subplot(
+                        fig=f,
+                        ax=axes_flat[i],
+                        slicer=slicer,
+                        show_legend=show_legend,
+                        xlabel=xlabel,
+                        ylabel=ylabel,
+                        hide_axes=hide_axes,
+                        cbar_label=cbar_label,
+                        show_cbar=show_cbar,
+                        **kwargs,
+                    )
+
+                    axes_flat[i].set_title(
+                        self.title
+                        if self.title is not None
+                        else f"Position {self.positions[global_i]}"
+                    )
+
+                # hide any empty subplots
+                for i in range(current_num_slices, len(axes_flat)):
+                    axes_flat[i].axis("off")
+
+                # save if filename provided
+                if filename:
+                    if num_figures > 1:
+                        fname = f"fig{fig_idx+1}_{filename}"
+                    else:
+                        fname = filename
+                    print(f"Saving {fname}")
+                    plt.savefig(fname, dpi=200)
+
+                all_figures.append(f)
+            plt.show()
+
+            return all_figures
+        else:
+            f, ax = plt.subplots(figsize=figsize)
+
+            f, ax = self.plot_subplot(
+                fig=f,
+                ax=ax,
+                slicer=self.slicer,
+                show_legend=show_legend,
+                xlabel=xlabel,
+                ylabel=ylabel,
+                hide_axes=hide_axes,
+                cbar_label=cbar_label,
+                show_cbar=show_cbar,
+                title=self.title,
+                **kwargs,
+            )
+
+            if filename is not None:
+                print(f"Saving {filename}")
+                plt.savefig(filename, dpi=300)
+
+            plt.show()
+            return f
 
     def plot_subplot(
         self,
         fig: plt.Figure,
         ax: plt.Axes,
+        slicer: Optional[Slicer] = None,
         show_legend: bool = False,
         xlabel: str = "µm",
         ylabel: str = "µm",
         hide_axes: bool = False,
         cbar_label: Optional[str] = None,
         show_cbar: bool = True,
+        title: Optional[str] = None,
         **kwargs,
     ) -> Tuple[plt.Figure, plt.Axes]:
         """
@@ -449,6 +554,9 @@ class Heatmap:
             Default is None.
         show_cbar : bool, optional
             Display a colorbar alongside the subplot. Default is True.
+        title : str, optional
+            Title for the subplot. If None, self.title is used.
+            Default is None.
         **kwargs : dict
             Additional keyword arguments passed to the plotting function.
 
@@ -461,7 +569,10 @@ class Heatmap:
         -----
         This method modifies the provided figure and axes objects in-place.
         """
-        projected, _ = self.slicer.get_structures_slice_coords(
+        if slicer is None:
+            slicer = self.slicer
+
+        projected, _ = slicer.get_structures_slice_coords(
             self.regions_meshes, self.scene.root
         )
 
@@ -555,7 +666,7 @@ class Heatmap:
         ax.spines["right"].set_visible(False)
         ax.spines["top"].set_visible(False)
 
-        ax.set(title=self.title)
+        ax.set(title=title if title is not None else self.title)
 
         if isinstance(self.orientation, str) or np.sum(self.orientation) == 1:
             # orthogonal projection
