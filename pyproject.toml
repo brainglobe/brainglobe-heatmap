@@ -95,6 +95,8 @@ python =
 [testenv]
 extras =
     dev
+passenv =
+    MPLBACKEND
 commands =
     pytest -v --color=yes --cov=brainglobe_heatmap --cov-report=xml
 """
