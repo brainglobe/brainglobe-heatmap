@@ -549,13 +549,11 @@ class Heatmap:
 
                 if isinstance(self.label_regions, dict):
                     regions_to_label = (
-                        set(self.label_regions.keys())
-                        & unique_visible_regions
+                        set(self.label_regions.keys()) & unique_visible_regions
                     )
                 elif isinstance(self.label_regions, list):
                     regions_to_label = (
-                        set(self.label_regions)
-                        & unique_visible_regions
+                        set(self.label_regions) & unique_visible_regions
                     )
                 else:
                     regions_to_label = unique_visible_regions
@@ -567,9 +565,7 @@ class Heatmap:
                     if value > self.vmax or value < self.vmin:
                         continue
                     if isinstance(self.label_regions, dict):
-                        tick_labels.append(
-                            str(self.label_regions[region])
-                        )
+                        tick_labels.append(str(self.label_regions[region]))
                     else:
                         tick_labels.append(region)
                     tick_values.append(value)
