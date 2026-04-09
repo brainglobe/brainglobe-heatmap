@@ -258,3 +258,90 @@ def test_colorbar_only_in_range_regions_shown(heatmap_2d):
     _, kwargs = mock_colorbar.set_ticks.call_args
     assert kwargs["labels"] == ["VIS"]
     assert kwargs["ticks"][0] == 1.1
+
+
+# --- List and Dict label_regions tests ---
+
+
+def test_label_regions_list_only_specified_regions(
+    heatmap_2d, mock_projected
+):
+    """Only regions in the list should be labelled."""
+    heatmap_2d.label_regions = ["TH", "VIS"]
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, mock_projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert set(kwargs["labels"]) == {"TH", "VIS"}
+    assert len(kwargs["ticks"]) == 2
+
+
+def test_label_regions_list_ignores_non_visible(
+    heatmap_2d, mock_projected
+):
+    """Regions in the list but not visible should be ignored."""
+    heatmap_2d.label_regions = ["TH", "PA"]
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, mock_projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert kwargs["labels"] == ["TH"]
+    assert kwargs["ticks"] == [1]
+
+
+def test_label_regions_list_excludes_out_of_range(heatmap_2d):
+    """List regions with values outside vmin/vmax are excluded."""
+    heatmap_2d.label_regions = ["TH", "VIS"]
+    heatmap_2d.values = {"TH": -6.2, "VIS": 1.1}
+    projected = {
+        "TH_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
+        "VIS_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
+    }
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert kwargs["labels"] == ["VIS"]
+    assert kwargs["ticks"][0] == 1.1
+
+
+def test_label_regions_dict_custom_labels(
+    heatmap_2d, mock_projected
+):
+    """Dict values should be used as custom label text."""
+    heatmap_2d.label_regions = {"TH": "Thalamus", "VIS": "Visual"}
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, mock_projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert set(kwargs["labels"]) == {"Thalamus", "Visual"}
+    assert len(kwargs["ticks"]) == 2
+
+
+def test_label_regions_dict_ignores_non_visible(
+    heatmap_2d, mock_projected
+):
+    """Dict regions not visible in the slice should be ignored."""
+    heatmap_2d.label_regions = {"TH": "Thalamus", "PA": "Parietal"}
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, mock_projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert kwargs["labels"] == ["Thalamus"]
+    assert kwargs["ticks"] == [1]
+
+
+def test_label_regions_dict_excludes_out_of_range(heatmap_2d):
+    """Dict regions with values outside vmin/vmax are excluded."""
+    heatmap_2d.label_regions = {"TH": "Thalamus", "VIS": "Visual"}
+    heatmap_2d.values = {"TH": -6.2, "VIS": 1.1}
+    projected = {
+        "TH_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
+        "VIS_segment_0": np.array([[0, 0], [1, 0], [1, 1], [0, 1]]),
+    }
+    _, mock_colorbar = _show_with_mocks(
+        heatmap_2d, projected, show_cbar=True
+    )
+    _, kwargs = mock_colorbar.set_ticks.call_args
+    assert kwargs["labels"] == ["Visual"]
+    assert kwargs["ticks"][0] == 1.1

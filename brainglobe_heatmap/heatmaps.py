@@ -110,7 +110,7 @@ class Heatmap:
         interactive: bool = True,
         zoom: Optional[float] = None,
         atlas_name: Optional[str] = None,
-        label_regions: Optional[bool] = False,
+        label_regions: Optional[Union[bool, List[str], Dict]] = False,
         annotate_regions: Optional[Union[bool, List[str], Dict]] = False,
         annotate_text_options_2d: Optional[Dict] = None,
         check_latest: bool = True,
@@ -154,9 +154,14 @@ class Heatmap:
         atlas_name : str, optional
             Name of the atlas to use for the heatmap.
             If None allen_mouse_25um is used. Default is None.
-        label_regions : bool, optional
-            If True, labels the regions on the colorbar (only valid in 2D).
+        label_regions :
+            bool, List[str], Dict[str, str], optional
+            Controls region labelling on the colorbar (2D only).
+            If True, labels all visible regions.
+            If a list, labels only the specified regions.
+            If a dict, labels specified regions with custom text.
             Default is False.
+
         annotate_regions :
             bool, List[str], Dict[str, Union[str, float, int]], optional
             Controls region annotation in 2D and 3D format.
@@ -535,24 +540,38 @@ class Heatmap:
             if cbar_label is not None:
                 cbar.set_label(cbar_label)
 
-            if self.label_regions is True:
+            if self.label_regions:
                 unique_visible_regions = set()
                 for r in projected.keys():
                     name = r.split("_segment_")[0]
                     if name != "root":
                         unique_visible_regions.add(name)
 
-                visible_regions_values: list[tuple[str, float]] = [
-                    (region, self.values[region])
-                    for region in unique_visible_regions
-                ]
+                if isinstance(self.label_regions, dict):
+                    regions_to_label = (
+                        set(self.label_regions.keys())
+                        & unique_visible_regions
+                    )
+                elif isinstance(self.label_regions, list):
+                    regions_to_label = (
+                        set(self.label_regions)
+                        & unique_visible_regions
+                    )
+                else:
+                    regions_to_label = unique_visible_regions
 
                 tick_labels: list[str] = []
                 tick_values: list[float] = []
-                for region, value in visible_regions_values:
+                for region in regions_to_label:
+                    value = self.values[region]
                     if value > self.vmax or value < self.vmin:
                         continue
-                    tick_labels.append(region)
+                    if isinstance(self.label_regions, dict):
+                        tick_labels.append(
+                            str(self.label_regions[region])
+                        )
+                    else:
+                        tick_labels.append(region)
                     tick_values.append(value)
 
                 cbar.set_ticks(ticks=tick_values, labels=tick_labels)
