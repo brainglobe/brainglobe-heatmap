@@ -3,9 +3,6 @@ import pytest
 from brainglobe_heatmap.slicer import get_ax_idx
 
 # Tests for Orientation values in function get_ax_idx in slicer.py
-# Tests for Orientation values in function get_ax_idx in slicer.py
-
-
 @pytest.mark.parametrize(
     "input_str, out_idx",
     [
