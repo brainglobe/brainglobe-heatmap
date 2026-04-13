@@ -66,3 +66,58 @@ def test_handles_invalid_polygons(invalid_vertices):
     result = find_annotation_position_inside_polygon(invalid_vertices)
 
     assert result is None, f"Expected None, but got {result!r}"
+
+
+def test_too_few_vertices_returns_none():
+    """Polygon with fewer than 4 vertices should return None."""
+    vertices = np.array([[0, 0], [1, 0], [0, 1]])
+
+    result = find_annotation_position_inside_polygon(vertices)
+
+    assert result is None
+
+
+def test_polylabel_square_center():
+    """Polylabel should return a point near the center of a square."""
+    vertices = np.array(
+        [
+            [0, 0],
+            [10, 0],
+            [10, 10],
+            [0, 10],
+            [0, 0],
+        ]
+    )
+
+    result = find_annotation_position_inside_polygon(vertices)
+
+    assert result is not None
+    x, y = result
+
+    assert pytest.approx(x, abs=0.2) == 5
+    assert pytest.approx(y, abs=0.2) == 5
+
+
+def test_multipolygon_selects_largest_region():
+    """
+    Self-intersecting polygon should be repaired and
+    return a point inside the resulting geometry.
+    """
+    vertices = np.array(
+        [
+            [0, 0],
+            [0, 10],
+            [15, 0],
+            [15, 10],
+            [0, 0],
+        ]
+    )
+
+    result = find_annotation_position_inside_polygon(vertices)
+
+    assert result is not None
+    x, y = result
+
+    repaired_polygon = Polygon(vertices).buffer(0)
+
+    assert Point(x, y).within(repaired_polygon)
