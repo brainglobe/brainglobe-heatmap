@@ -3,47 +3,39 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
+from brainglobe_heatmap.plane import Plane
 from brainglobe_heatmap.planner import plan, print_plane
 
 
-class FakePlane:
-    """Minimal stand-in for Plane with the attributes print_plane reads."""
-
-    def __init__(self, center, normal, u, v):
-        self.center = np.array(center, dtype=float)
-        self.normal = np.array(normal, dtype=float)
-        self.u = np.array(u, dtype=float)
-        self.v = np.array(v, dtype=float)
-
-
 @pytest.mark.parametrize(
-    "center, normal, u, v",
+    "center, u, v",
     [
         pytest.param(
             [0, 0, 0],
-            [1, 0, 0],
             [0, 1, 0],
             [0, 0, 1],
             id="origin-axis-aligned",
         ),
         pytest.param(
             [5000.123, -3000.456, 7000.789],
-            [0, 0, 1],
             [1, 0, 0],
             [0, 1, 0],
             id="offset-center",
         ),
         pytest.param(
             [1.005, 2.005, 3.005],
-            [0.577, 0.577, 0.577],
             [-0.707, 0.707, 0],
             [0.408, 0.408, -0.816],
             id="oblique-plane",
         ),
     ],
 )
-def test_print_plane_outputs_plane_attributes(center, normal, u, v, capsys):
-    plane = FakePlane(center, normal, u, v)
+def test_print_plane_outputs_plane_attributes(center, u, v, capsys):
+    plane = Plane(
+        np.array(center, dtype=float),
+        np.array(u, dtype=float),
+        np.array(v, dtype=float),
+    )
     print_plane("test plane", plane, "blue")
 
     captured = capsys.readouterr().out
@@ -53,11 +45,10 @@ def test_print_plane_outputs_plane_attributes(center, normal, u, v, capsys):
 
 
 def test_print_plane_rounds_center_to_two_decimals(capsys):
-    plane = FakePlane(
-        [1.23456, 7.89012, 3.45678],
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
+    plane = Plane(
+        np.array([1.23456, 7.89012, 3.45678], dtype=float),
+        np.array([0, 1, 0], dtype=float),
+        np.array([0, 0, 1], dtype=float),
     )
     print_plane("rounding", plane, "red")
 
@@ -70,11 +61,20 @@ def test_print_plane_rounds_center_to_two_decimals(capsys):
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_converts_region_list_to_dict(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_converts_region_list_to_dict(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     regions_list = ["TH", "RSP", "AI"]
     plan.__init__(p, regions_list, position=(8000, 5000, 5000))
@@ -85,11 +85,20 @@ def test_plan_converts_region_list_to_dict(mock_print, mock_init):
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_passes_dict_regions_unchanged(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_passes_dict_regions_unchanged(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     regions_dict = {"TH": 0.5, "RSP": -1.2}
     plan.__init__(p, regions_dict, position=(8000,))
@@ -100,11 +109,20 @@ def test_plan_passes_dict_regions_unchanged(mock_print, mock_init):
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_always_passes_3d_format(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_always_passes_3d_format(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     plan.__init__(p, {"TH": 1}, position=(5000,))
 
@@ -113,22 +131,40 @@ def test_plan_always_passes_3d_format(mock_print, mock_init):
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_stores_arrow_scale(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_stores_arrow_scale(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     plan.__init__(p, {"TH": 1}, position=(5000,), arrow_scale=750)
     assert p.arrow_scale == 750
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_default_arrow_scale(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_default_arrow_scale(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     plan.__init__(p, {"TH": 1}, position=(5000,))
     assert p.arrow_scale == 10
@@ -137,7 +173,6 @@ def test_plan_default_arrow_scale(mock_print, mock_init):
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
 @patch("brainglobe_heatmap.planner.print_plane")
 def test_plan_prints_both_slicer_planes(mock_print, mock_init):
-    mock_init.return_value = None
     p = plan.__new__(plan)
     plane0 = MagicMock()
     plane1 = MagicMock()
@@ -155,11 +190,20 @@ def test_plan_prints_both_slicer_planes(mock_print, mock_init):
 
 
 @patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_forwards_kwargs_to_heatmap(mock_print, mock_init):
-    mock_init.return_value = None
+def test_plan_forwards_kwargs_to_heatmap(mock_init):
     p = plan.__new__(plan)
-    p.slicer = MagicMock()
+    p.slicer = MagicMock(
+        plane0=Plane(
+            np.array([0, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+        plane1=Plane(
+            np.array([1, 0, 0], dtype=float),
+            np.array([1, 0, 0], dtype=float),
+            np.array([0, 1, 0], dtype=float),
+        ),
+    )
 
     plan.__init__(
         p,
