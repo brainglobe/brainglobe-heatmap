@@ -95,6 +95,7 @@ def find_annotation_position_inside_polygon(
 
 # Internal helpers for annotation-based 2D plotting
 
+
 def _get_orientation_axis(orientation: str) -> int:
     """
     Returns the volume axis index corresponding to the given orientation.
@@ -663,9 +664,9 @@ class Heatmap:
         This method is used to generate a standalone plot of
         the heatmap data.
         """
-        
+
         f, ax = plt.subplots(figsize=(9, 9))
-        
+
         f, ax = self.plot_subplot(
             fig=f,
             ax=ax,
@@ -677,10 +678,10 @@ class Heatmap:
             show_cbar=show_cbar,
             **kwargs,
         )
-        
+
         if filename is not None:
             plt.savefig(filename, dpi=300)
-            
+
         plt.show()
         return f
 
@@ -747,8 +748,15 @@ class Heatmap:
                 stacklevel=2,
             )
             return self._plot_subplot_legacy(
-                fig, ax, show_legend, xlabel, ylabel,
-                hide_axes, cbar_label, show_cbar, **kwargs,
+                fig,
+                ax,
+                show_legend,
+                xlabel,
+                ylabel,
+                hide_axes,
+                cbar_label,
+                show_cbar,
+                **kwargs,
             )
 
         id_to_acronym = _build_id_to_acronym(self._bg_atlas)

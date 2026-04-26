@@ -1,14 +1,15 @@
+import matplotlib
 import numpy as np
 import pytest
-import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from brainglobe_heatmap.heatmaps import (
-    _draw_smooth_contours,
-    _draw_region_labels,
     _build_id_to_acronym,
     _build_region_masks_bottomup,
+    _draw_region_labels,
+    _draw_smooth_contours,
     _get_slice_from_volume,
     check_values,
 )
@@ -22,9 +23,11 @@ SMALL_DICT = {"CB": 1.09, "MY": 0.35}
 
 # Shared fixtures
 
+
 @pytest.fixture(scope="module")
 def atlas():
     from bg_atlasapi import BrainGlobeAtlas
+
     return BrainGlobeAtlas(ATLAS_NAME)
 
 
@@ -48,6 +51,7 @@ def region_masks(atlas, frontal_slice, id_to_acronym_map):
 
 # _draw_smooth_contours
 
+
 def _make_slice_with_region(region_id: int = 1) -> np.ndarray:
     s = np.zeros((20, 20), dtype=int)
     s[5:15, 5:15] = region_id
@@ -58,10 +62,18 @@ def test_draw_smooth_contours_runs_without_error():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(1)
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([1]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([1]),
         id_to_acronym={1: "CB"},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#333333", linewidth=1.0, alpha=0.85, sigma=1.5,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#333333",
+        linewidth=1.0,
+        alpha=0.85,
+        sigma=1.5,
     )
     plt.close(fig)
 
@@ -71,10 +83,18 @@ def test_draw_smooth_contours_unknown_id_skipped():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(999)
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([999]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([999]),
         id_to_acronym={},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#333333", linewidth=1.0, alpha=0.85, sigma=1.5,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#333333",
+        linewidth=1.0,
+        alpha=0.85,
+        sigma=1.5,
     )
     assert len(ax.lines) == 0
     plt.close(fig)
@@ -86,10 +106,18 @@ def test_draw_smooth_contours_multiple_regions():
     s[2:10, 2:10] = 1
     s[15:25, 15:25] = 2
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([1, 2]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([1, 2]),
         id_to_acronym={1: "CB", 2: "MY"},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#333333", linewidth=1.0, alpha=0.85, sigma=1.5,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#333333",
+        linewidth=1.0,
+        alpha=0.85,
+        sigma=1.5,
     )
     assert len(ax.lines) >= 2
     plt.close(fig)
@@ -100,10 +128,18 @@ def test_draw_smooth_contours_empty_slice():
     fig, ax = plt.subplots()
     s = np.zeros((20, 20), dtype=int)
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([]),
         id_to_acronym={},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#333333", linewidth=1.0, alpha=0.85, sigma=1.5,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#333333",
+        linewidth=1.0,
+        alpha=0.85,
+        sigma=1.5,
     )
     assert len(ax.lines) == 0
     plt.close(fig)
@@ -114,10 +150,18 @@ def test_draw_smooth_contours_sigma_zero():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(1)
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([1]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([1]),
         id_to_acronym={1: "CB"},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#000000", linewidth=0.5, alpha=1.0, sigma=0,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#000000",
+        linewidth=0.5,
+        alpha=1.0,
+        sigma=0,
     )
     plt.close(fig)
 
@@ -126,10 +170,18 @@ def test_draw_smooth_contours_respects_linewidth():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(1)
     _draw_smooth_contours(
-        ax=ax, slice_data=s, unique_ids=np.array([1]),
+        ax=ax,
+        slice_data=s,
+        unique_ids=np.array([1]),
         id_to_acronym={1: "CB"},
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        color="#ff0000", linewidth=2.5, alpha=0.5, sigma=1.0,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        color="#ff0000",
+        linewidth=2.5,
+        alpha=0.5,
+        sigma=1.0,
     )
     for line in ax.lines:
         assert line.get_linewidth() == pytest.approx(2.5)
@@ -138,15 +190,24 @@ def test_draw_smooth_contours_respects_linewidth():
 
 # _draw_region_labels
 
+
 def test_draw_region_labels_runs_without_error():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(1)
     masks = {"CB": s > 0}
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks=masks,
+        ax=ax,
+        slice_data=s,
+        region_masks=masks,
         regions_to_label=["CB"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="black", draw_bbox=True, min_area=1,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="black",
+        draw_bbox=True,
+        min_area=1,
     )
     texts = [t.get_text() for t in ax.texts]
     assert "CB" in texts
@@ -158,10 +219,18 @@ def test_draw_region_labels_empty_mask_skipped():
     s = np.zeros((20, 20), dtype=int)
     masks = {"CB": s > 0}
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks=masks,
+        ax=ax,
+        slice_data=s,
+        region_masks=masks,
         regions_to_label=["CB"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="black", draw_bbox=False, min_area=1,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="black",
+        draw_bbox=False,
+        min_area=1,
     )
     assert len(ax.texts) == 0
     plt.close(fig)
@@ -174,10 +243,18 @@ def test_draw_region_labels_min_area_filters_small_components():
     s[5, 5] = 1
     masks = {"CB": s > 0}
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks=masks,
+        ax=ax,
+        slice_data=s,
+        region_masks=masks,
         regions_to_label=["CB"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="black", draw_bbox=False, min_area=50,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="black",
+        draw_bbox=False,
+        min_area=50,
     )
     assert len(ax.texts) == 0
     plt.close(fig)
@@ -188,10 +265,18 @@ def test_draw_region_labels_no_bbox():
     s = _make_slice_with_region(1)
     masks = {"CB": s > 0}
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks=masks,
+        ax=ax,
+        slice_data=s,
+        region_masks=masks,
         regions_to_label=["CB"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="white", draw_bbox=False, min_area=1,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="white",
+        draw_bbox=False,
+        min_area=1,
     )
     for t in ax.texts:
         assert t.get_bbox_patch() is None
@@ -203,10 +288,18 @@ def test_draw_region_labels_unknown_region_skipped():
     fig, ax = plt.subplots()
     s = _make_slice_with_region(1)
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks={},
+        ax=ax,
+        slice_data=s,
+        region_masks={},
         regions_to_label=["NONEXISTENT"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="black", draw_bbox=False, min_area=1,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="black",
+        draw_bbox=False,
+        min_area=1,
     )
     assert len(ax.texts) == 0
     plt.close(fig)
@@ -219,10 +312,18 @@ def test_draw_region_labels_multiple_regions():
     s[25:35, 25:35] = 2
     masks = {"CB": s == 1, "MY": s == 2}
     _draw_region_labels(
-        ax=ax, slice_data=s, region_masks=masks,
+        ax=ax,
+        slice_data=s,
+        region_masks=masks,
         regions_to_label=["CB", "MY"],
-        x_scale=25, y_scale=25, x0=0, y0=0,
-        fontsize=6.0, color="black", draw_bbox=True, min_area=1,
+        x_scale=25,
+        y_scale=25,
+        x0=0,
+        y0=0,
+        fontsize=6.0,
+        color="black",
+        draw_bbox=True,
+        min_area=1,
     )
     texts = [t.get_text() for t in ax.texts]
     assert "CB" in texts
@@ -231,6 +332,7 @@ def test_draw_region_labels_multiple_regions():
 
 
 # check_values
+
 
 def test_check_values_valid(atlas):
     vmax, vmin = check_values({"CB": 1.0, "MY": 0.5}, atlas)
@@ -268,9 +370,12 @@ def test_check_values_negative_values(atlas):
 
 # Heatmap.plot_subplot — warning for missing region
 
+
 def test_plot_subplot_warns_on_missing_region(atlas):
     import warnings
+
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         {"CB": 1.0, "MY": 0.5},
         position=0,
@@ -290,9 +395,11 @@ def test_plot_subplot_warns_on_missing_region(atlas):
 
 # Heatmap color_mode variants
 
+
 @pytest.mark.parametrize("color_mode", ["heatmap", "atlas", "discrete"])
 def test_plot_subplot_color_modes(color_mode):
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -310,6 +417,7 @@ def test_plot_subplot_color_modes(color_mode):
 
 def test_plot_subplot_show_labels():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -325,6 +433,7 @@ def test_plot_subplot_show_labels():
 
 def test_plot_subplot_hide_axes():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -340,6 +449,7 @@ def test_plot_subplot_hide_axes():
 
 def test_plot_subplot_no_colorbar():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -354,6 +464,7 @@ def test_plot_subplot_no_colorbar():
 
 def test_plot_subplot_custom_background():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -369,6 +480,7 @@ def test_plot_subplot_custom_background():
 
 def test_plot_subplot_annotate_regions():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,
@@ -384,6 +496,7 @@ def test_plot_subplot_annotate_regions():
 
 def test_plot_subplot_label_regions_colorbar():
     import brainglobe_heatmap as bgh
+
     hm = bgh.Heatmap(
         SMALL_DICT,
         position=POSITION_UM,

@@ -23,8 +23,8 @@ SMALL_DICT = {
 }
 
 
-
 # Shared fixtures
+
 
 @pytest.fixture(scope="module")
 def atlas():
@@ -51,8 +51,8 @@ def region_masks(atlas, frontal_slice, id_to_acronym_map):
     )
 
 
-
 # _get_orientation_axis
+
 
 @pytest.mark.parametrize(
     "orientation,expected_axis",
@@ -72,8 +72,8 @@ def test_get_orientation_axis_unknown_raises():
         _get_orientation_axis("coronal")
 
 
-
 # _get_slice_from_volume
+
 
 def test_get_slice_from_volume_returns_2d_array(atlas):
     s, _ = _get_slice_from_volume(atlas, POSITION_UM, ORIENTATION)
@@ -128,8 +128,8 @@ def test_get_slice_from_volume_contains_annotated_pixels(atlas):
     assert (s > 0).any()
 
 
-
 # _build_id_to_acronym
+
 
 def test_build_id_to_acronym_returns_dict(id_to_acronym_map):
     assert isinstance(id_to_acronym_map, dict)
@@ -161,7 +161,6 @@ def test_build_id_to_acronym_no_duplicates(id_to_acronym_map):
     assert len(acronyms) == len(set(acronyms))
 
 
-
 # _build_region_masks_bottomup
 
 
@@ -190,9 +189,9 @@ def test_build_region_masks_bottomup_cb_not_empty(region_masks):
     annotation volume are carried by its leaf sub-regions, not by CB's own
     ID.  The bottom-up ancestor traversal must assign those pixels to CB.
     """
-    assert region_masks["CB"].any(), (
-        "CB mask is empty — the bottom-up ancestor fix is not working."
-    )
+    assert region_masks[
+        "CB"
+    ].any(), "CB mask is empty — the bottom-up ancestor fix is not working."
 
 
 def test_build_region_masks_bottomup_distinct_regions_differ(region_masks):
@@ -200,9 +199,9 @@ def test_build_region_masks_bottomup_distinct_regions_differ(region_masks):
     for i in range(len(regions)):
         for j in range(i + 1, len(regions)):
             r1, r2 = regions[i], regions[j]
-            assert not np.array_equal(region_masks[r1], region_masks[r2]), (
-                f"Identical masks for '{r1}' and '{r2}'"
-            )
+            assert not np.array_equal(
+                region_masks[r1], region_masks[r2]
+            ), f"Identical masks for '{r1}' and '{r2}'"
 
 
 def test_build_region_masks_bottomup_empty_target_list(
@@ -231,13 +230,11 @@ def test_build_region_masks_bottomup_cb_coverage(region_masks, frontal_slice):
     slice_data, _ = frontal_slice
     total = (slice_data > 0).sum()
     ratio = region_masks["CB"].sum() / total
-    assert ratio > 0.01, (
-        f"CB covers only {ratio:.1%} of brain pixels."
-    )
-
+    assert ratio > 0.01, f"CB covers only {ratio:.1%} of brain pixels."
 
 
 # _smooth_contour_path
+
 
 def _circle_coords(n: int = 40) -> np.ndarray:
     t = np.linspace(0, 2 * np.pi, n)
@@ -252,7 +249,9 @@ def test_smooth_contour_path_output_shape_unchanged():
 def test_smooth_contour_path_short_path_returned_as_is():
     """Contours with fewer than 6 points must be returned unchanged."""
     coords = np.array([[0, 0], [1, 1], [2, 2]])
-    np.testing.assert_array_equal(_smooth_contour_path(coords, sigma=1.5), coords)
+    np.testing.assert_array_equal(
+        _smooth_contour_path(coords, sigma=1.5), coords
+    )
 
 
 def test_smooth_contour_path_reduces_variance():
@@ -270,8 +269,8 @@ def test_smooth_contour_path_tiny_sigma_preserves_shape():
     )
 
 
-
 # ATLAS_REGION_COLORS palette
+
 
 def test_atlas_region_colors_minimum_length():
     assert len(ATLAS_REGION_COLORS) >= 20
@@ -288,8 +287,8 @@ def test_atlas_region_colors_all_distinct():
     assert len(ATLAS_REGION_COLORS) == len(set(ATLAS_REGION_COLORS))
 
 
-
 # Heatmap.get_region_annotation_text
+
 
 @pytest.mark.parametrize(
     "annotate_regions,region,expected",
@@ -299,12 +298,42 @@ def test_atlas_region_colors_all_distinct():
         pytest.param(True, "root", None, id="root_ignored"),
         pytest.param(["TH"], "TH", "TH", id="list_included"),
         pytest.param(["TH"], "RSP", None, id="list_excluded"),
-        pytest.param({"TH": "Thalamus", "RSP": 0.5}, "TH", "Thalamus", id="dict_text_value"),
-        pytest.param({"TH": "Thalamus", "RSP": 0.5}, "RSP", "0.5", id="dict_numeric_value"),
-        pytest.param({"TH": "Thalamus", "RSP": 0.5}, "AI", None, id="dict_missing_region"),
-        pytest.param({"TH": 123, "RSP": None, "VIS": True}, "TH", "123", id="dict_int_value"),
-        pytest.param({"TH": 123, "RSP": None, "VIS": True}, "RSP", "None", id="dict_none_value"),
-        pytest.param({"TH": 123, "RSP": None, "VIS": True}, "VIS", "True", id="dict_bool_value"),
+        pytest.param(
+            {"TH": "Thalamus", "RSP": 0.5},
+            "TH",
+            "Thalamus",
+            id="dict_text_value",
+        ),
+        pytest.param(
+            {"TH": "Thalamus", "RSP": 0.5},
+            "RSP",
+            "0.5",
+            id="dict_numeric_value",
+        ),
+        pytest.param(
+            {"TH": "Thalamus", "RSP": 0.5},
+            "AI",
+            None,
+            id="dict_missing_region",
+        ),
+        pytest.param(
+            {"TH": 123, "RSP": None, "VIS": True},
+            "TH",
+            "123",
+            id="dict_int_value",
+        ),
+        pytest.param(
+            {"TH": 123, "RSP": None, "VIS": True},
+            "RSP",
+            "None",
+            id="dict_none_value",
+        ),
+        pytest.param(
+            {"TH": 123, "RSP": None, "VIS": True},
+            "VIS",
+            "True",
+            id="dict_bool_value",
+        ),
         pytest.param([], "TH", None, id="empty_list"),
         pytest.param({}, "TH", None, id="empty_dict"),
     ],
@@ -312,13 +341,13 @@ def test_atlas_region_colors_all_distinct():
 def test_get_region_annotation_text(annotate_regions, region, expected):
     heatmap = type("Heatmap", (), {"annotate_regions": annotate_regions})()
     result = bgh.Heatmap.get_region_annotation_text(heatmap, region)
-    assert result == expected, (
-        f"Expected '{expected}' for region '{region}', got '{result}'"
-    )
-
+    assert (
+        result == expected
+    ), f"Expected '{expected}' for region '{region}', got '{result}'"
 
 
 # vmin / vmax
+
 
 @pytest.mark.parametrize(
     "vmin,vmax",
@@ -369,8 +398,8 @@ def test_equal_values_do_not_produce_degenerate_range():
     assert hm.vmin != hm.vmax
 
 
+# Left-right symmetry regression
 
-# Left-right symmetry regression 
 
 def test_slice_left_right_pixel_ratio(atlas):
     """The left and right halves of a frontal slice should contain a similar
