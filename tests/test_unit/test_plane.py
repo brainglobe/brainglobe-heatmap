@@ -29,7 +29,7 @@ def test_from_norm_creates_valid_plane():
 
     plane = Plane.from_norm(origin, normal)
 
-    assert np.allclose(np.abs(plane.normal), np.array([0, 0, 1]))
+    assert np.allclose(plane.normal, np.array([0, 0, 1]))
 
 
 def test_p3_to_p2_projection():

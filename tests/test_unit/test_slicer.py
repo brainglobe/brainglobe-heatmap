@@ -1,3 +1,5 @@
+from unittest.mock import MagicMock
+
 import numpy as np
 import pytest
 
@@ -28,18 +30,14 @@ def test_get_ax_idx_case_sensitive():
         get_ax_idx("Frontal")
 
 
-class DummyRoot:
-    def center_of_mass(self):
-        return np.array([0, 0, 0])
-
-
 def test_position_float_with_vector_orientation_raises():
-    dummy_root = DummyRoot()
+    root = MagicMock()
+    root.center_of_mass.return_value = np.array([0, 0, 0])
 
     with pytest.raises(ValueError):
         Slicer(
             position=10,
             orientation=np.array([1, 0, 0]),
             thickness=5,
-            root=dummy_root,
+            root=root,
         )
