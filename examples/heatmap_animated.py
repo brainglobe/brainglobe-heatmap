@@ -10,6 +10,7 @@ from matplotlib.colors import Normalize
 
 import brainglobe_heatmap as bgh
 
+# Heat values used throughout the animation.
 values = {
     "TH": 1,
     "RSP": 0.2,
@@ -28,26 +29,28 @@ values = {
     "PA": -4,
 }
 
-# Keep normalization fixed for valid between-frame comparisons.
-vmin = min(values.values())
-vmax = max(values.values())
-
+# Example settings.
 atlas_name = "allen_mouse_25um"
 orientation = "frontal"
 cmap = "Reds"
 step_um = 500
 fps = 3
 
+vmin = min(values.values())
+vmax = max(values.values())
+
 axis_idx = {"frontal": 0, "horizontal": 1, "sagittal": 2}[orientation]
 atlas = BrainGlobeAtlas(atlas_name)
-# Calculate the full range of slice positions along the selected axis.
+
+# Build the slice positions for the selected axis.
 max_pos_um = atlas.reference.shape[axis_idx] * atlas.resolution[axis_idx]
 
 positions = list(range(0, int(max_pos_um) + 1, step_um))
 
+# Set up the figure and a shared colorbar.
 fig, ax = plt.subplots(figsize=(10, 4))
 
-# Fixed colour normalization for fair comparison across frames.
+# Keep the same color scale across frames.
 norm = Normalize(vmin=vmin, vmax=vmax)
 sm = ScalarMappable(norm=norm, cmap=cmap)
 sm.set_array([])
@@ -55,9 +58,11 @@ fig.colorbar(sm, ax=ax, label="Value")
 
 
 def update_frames(frame_idx):
+    """Draw one animation frame for the current slice position."""
     ax.clear()
     pos = positions[frame_idx]
 
+    # Recreate the heatmap for this slice position.
     heatmap = bgh.Heatmap(
         values,
         position=pos,
@@ -70,6 +75,7 @@ def update_frames(frame_idx):
     )
     heatmap.plot_subplot(fig, ax, show_cbar=False)
     ax.set_title(f"Position: {pos} um")
+    # Show the current frame number.
     ax.text(
         0.02,
         0.98,
@@ -81,7 +87,7 @@ def update_frames(frame_idx):
         bbox={"facecolor": "white", "alpha": 0.7, "edgecolor": "none"},
     )
 
-
+# Build the animation by calling the update function for each frame.
 ani = FuncAnimation(
     fig,
     update_frames,
@@ -90,6 +96,7 @@ ani = FuncAnimation(
     repeat=False,
 )
 
+# Save the animation next to this example script.
 output_path = Path(__file__).with_name("brain_animation.gif")
 ani.save(output_path, writer="pillow", fps=fps)
 
