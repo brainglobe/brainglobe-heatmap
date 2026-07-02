@@ -87,6 +87,7 @@ def update_frames(frame_idx):
         bbox={"facecolor": "white", "alpha": 0.7, "edgecolor": "none"},
     )
 
+
 # Build the animation by calling the update function for each frame.
 ani = FuncAnimation(
     fig,
