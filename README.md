@@ -1,24 +1,20 @@
+[![Docs](https://img.shields.io/badge/Docs-brainglobe--heatmap-blue)](https://brainglobe.info/documentation/brainrender/index.html)
+[![Get in Touch](https://img.shields.io/badge/Get%20in%20Touch-BrainGlobe-blue)](https://brainglobe.info/contact.html)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.10375287-green)](https://doi.org/10.5281/zenodo.10375287)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/brainglobe/brainglobe-heatmap/actions/workflows/test_and_deploy.yml/badge.svg)](https://github.com/brainglobe/brainglobe-heatmap/actions/workflows/test_and_deploy.yml)
+[![Codecov](https://codecov.io/gh/brainglobe/brainglobe-heatmap/graph/badge.svg?token=nx1lhNI7ox)](https://codecov.io/gh/brainglobe/brainglobe-heatmap)
 [![Python Version](https://img.shields.io/pypi/pyversions/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
 [![PyPI](https://img.shields.io/pypi/v/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
-[![Napari hub](https://img.shields.io/endpoint?url=https://npe2api-git-add-shields-napari.vercel.app/api/shields/brainglobe-heatmap)](https://napari-hub.org/plugins/brainglobe-heatmap.html)
-[![Downloads](https://pepy.tech/badge/brainglobe-heatmap)](https://pepy.tech/project/brainglobe-heatmap)
-[![Wheel](https://img.shields.io/pypi/wheel/brainglobe-heatmap.svg)](https://pypi.org/project/brainglobe-heatmap)
-[![Development Status](https://img.shields.io/pypi/status/brainglobe-heatmap.svg)](https://github.com/brainglobe/brainglobe-heatmap)
-[![Tests](https://img.shields.io/github/actions/workflow/status/brainglobe/brainglobe-heatmap/test_and_deploy.yml?branch=main)](https://github.com/brainglobe/brainglobe-heatmap/actions)
-[![codecov](https://codecov.io/gh/brainglobe/brainglobe-heatmap/branch/main/graph/badge.svg?token=nx1lhNI7ox)](https://codecov.io/gh/brainglobe/brainglobe-heatmap)
-[![Code style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/format.json)](https://github.com/astral-sh/ruff)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![Contributions](https://img.shields.io/badge/Contributions-Welcome-brightgreen.svg)](https://brainglobe.info/community/developers/index.html)
-[![image.sc forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fbrainglobe.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tag/brainglobe)
-[![Bluesky](https://img.shields.io/badge/Bluesky-0285FF?logo=bluesky&logoColor=fff)](https://bsky.app/profile/brainglobe.info)
-[![Mastodon](https://img.shields.io/badge/Mastodon-6364FF?logo=mastodon&logoColor=fff)](https://mastodon.online/@brainglobe)
+[![Downloads](https://static.pepy.tech/badge/brainglobe-heatmap)](https://pepy.tech/project/brainglobe-heatmap)
+[![Code Style: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/format.json)](https://github.com/astral-sh/ruff)
+[![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-green?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-green.svg)](https://brainglobe.info/community/developers/index.html)
 
 # brainglobe-heatmap
 `brainglobe-heatmap` allows you to create heatmaps, mapping scalar values for each brain region (e.g., number of labelled cells in each region) to a color and creating visualizations in 2D (using [matplotlib](https://matplotlib.org/) or 3D (using [brainrender](https://brainglobe.info/documentation/brainrender/index.html)).
 
 <img width="947" alt="Hansen_2025_Fig1" src="https://github.com/user-attachments/assets/38e93939-aa3a-4f94-8edf-a6a470260de9" />
-
 
 **2D heatmap generated using matplotlib - adapted from Fig 1. from [Hansen et al (2025)](https://doi.org/10.1101/2025.01.24.634803)**
 
@@ -56,7 +52,6 @@ values = dict(  # scalar values for each region
     PA=-4,
 )
 
-
 f = bgh.Heatmap(
     values,
     position=5000,
@@ -88,7 +83,6 @@ values = dict(  # scalar values for each region
     HIP=3,
     PA=-4,
 )
-
 
 scene = bgh.Heatmap(
     values,
