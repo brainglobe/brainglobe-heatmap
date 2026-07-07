@@ -1,4 +1,4 @@
-[![Docs](https://img.shields.io/badge/Docs-brainglobe--heatmap-blue)](https://brainglobe.info/documentation/brainrender/index.html)
+[![Docs](https://img.shields.io/badge/Docs-brainglobe--heatmap-blue)](https://brainglobe.info/documentation/brainglobe-heatmap/index.html)
 [![Get in Touch](https://img.shields.io/badge/Get%20in%20Touch-BrainGlobe-blue)](https://brainglobe.info/contact.html)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.10375287-green)](https://doi.org/10.5281/zenodo.10375287)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
