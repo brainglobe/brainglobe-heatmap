@@ -33,6 +33,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "coverage",
+    "numba >= 0.61.0", # Fix for uv pip install
     "tox",
     "black",
     "mypy",
