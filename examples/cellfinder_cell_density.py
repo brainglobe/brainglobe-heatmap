@@ -8,7 +8,6 @@ from pathlib import Path
 
 import pandas as pd
 from brainglobe_atlasapi.bg_atlas import BrainGlobeAtlas
-from brainrender._io import load_mesh_from_file
 
 import brainglobe_heatmap as bgh
 
@@ -46,10 +45,14 @@ cells_summary.set_index("parent_region", inplace=True)
 
 # Get regions' volume
 volumes = []
+vox_size = (
+    atlas.resolution[0] * atlas.resolution[1] * atlas.resolution[2]
+) / 1e9  # convert to mm^3
+
 for region in cells_summary.index:
-    obj_file = str(atlas.meshfile_from_structure(region))
-    mesh = load_mesh_from_file(obj_file)
-    volumes.append(mesh.volume())
+    mask = atlas.get_structure_mask(region)
+    volume = mask.sum() * vox_size
+    volumes.append(volume)
 
 # Calculate the density using atlas volume for each region
 cells_summary["volume_mm3"] = volumes
