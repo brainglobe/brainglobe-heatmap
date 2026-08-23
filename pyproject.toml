@@ -34,14 +34,12 @@ dev = [
     "pytest-cov",
     "coverage",
     "numba >= 0.61.0", # Fix for uv pip install
-    "tox",
     "black",
     "mypy",
     "pre-commit",
     "ruff",
     "setuptools_scm",
 ]
-
 
 [build-system]
 requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
@@ -55,7 +53,7 @@ include = ["brainglobe_heatmap*"]
 exclude = ["tests*"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=brainglobe_heatmap"
+addopts = "--cov=brainglobe_heatmap --cov-report=xml --color=yes -vv"
 
 [tool.black]
 target-version = ['py311','py312', 'py313']
@@ -80,24 +78,3 @@ fix = true
 
 [tool.ruff.lint]
 select = ["I", "E", "F", "B"]
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py{311,312,313}
-isolated_build = True
-
-[gh-actions]
-python =
-    3.11: py311
-    3.12: py312
-    3.13: py313
-
-[testenv]
-extras =
-    dev
-passenv =
-    MPLBACKEND
-commands =
-    pytest -v --color=yes --cov=brainglobe_heatmap --cov-report=xml
-"""
