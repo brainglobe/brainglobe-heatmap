@@ -6,6 +6,14 @@ from brainrender.scene import Scene
 
 from brainglobe_heatmap.plane import Plane
 
+# Atlas-space (AP, DV, LR) -> 2D (x, y) projection for each plane,
+# keyed by the index of the axis orthogonal to it (see get_ax_idx)
+PROJ_M = {
+    0: np.array([[0, 0], [0, 1], [1, 0]]),  # frontal: x=LR, y=DV
+    1: np.array([[0, 1], [0, 0], [1, 0]]),  # horizontal: x=LR, y=AP
+    2: np.array([[1, 0], [0, 1], [0, 0]]),  # sagittal: x=AP, y=DV
+}
+
 
 def get_ax_idx(orientation: str) -> int:
     """
@@ -72,6 +80,8 @@ class Slicer:
             plane0 = Plane(_position, u0, v0)
             u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
             plane1 = Plane(p1, u1, v1)
+
+            self._proj_M = PROJ_M[axidx]
         else:
             orientation = np.array(orientation)
 
@@ -81,6 +91,9 @@ class Slicer:
             plane0 = Plane.from_norm(_position, norm0)
             norm1 = -orientation  # type: ignore
             plane1 = Plane.from_norm(p1, norm1)
+
+            dominant = int(np.argmax(np.abs(orientation)))
+            self._proj_M = PROJ_M[dominant]
 
         self.plane0 = Actor(
             plane0,
@@ -93,6 +106,12 @@ class Slicer:
             br_class="plane",
         )
 
+    def _project_to_2d(self, points_br: np.ndarray) -> np.ndarray:
+        """Project 3D brainrender points to 2D atlas-space coordinates."""
+        pts = points_br.copy()
+        pts[:, 2] = -pts[:, 2]  # undo brainrender Z-flip
+        return pts @ self._proj_M
+
     def get_structures_slice_coords(self, regions: List[Actor], root: Actor):
         """
         It computes the intersection between the first slice plane and all
@@ -103,7 +122,10 @@ class Slicer:
         """
         regions = regions + [root]
 
-        projected: Dict[str, np.ndarray] = self.plane0.get_projections(regions)
+        projected = {
+            key: self._project_to_2d(points)
+            for key, points in self.plane0.get_intersections(regions).items()
+        }
 
         # get output coordinates
         coordinates: Dict[str, List[np.ndarray]] = dict()
@@ -152,7 +174,16 @@ def get_structures_slice_coords(
     """
     Given a list of region name and a set of plane parameters,
     it returns the coordinates of the plane/regions'
-    intersection in the plane's coordinates
+    intersection in atlas space (µm):
+
+    - frontal-like planes: (LR, DV)
+    - horizontal-like planes: (LR, AP)
+    - sagittal-like planes: (AP, DV)
+
+    Tuple orientations use the axes of the named plane closest to them
+    (largest normal component). Each point keeps its own atlas coordinates,
+    i.e. oblique slices are viewed along that axis, so distances along the
+    tilted direction are shortened by cos(tilt).
     """
 
     scene = Scene(atlas_name=atlas_name, check_latest=check_latest)
