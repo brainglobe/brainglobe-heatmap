@@ -94,8 +94,8 @@ def test_polylabel_square_center():
     assert result is not None
     x, y = result
 
-    assert pytest.approx(x, abs=0.2) == 5
-    assert pytest.approx(y, abs=0.2) == 5
+    assert pytest.approx(x, abs=0.01) == 5
+    assert pytest.approx(y, abs=0.01) == 5
 
 
 def test_multipolygon_selects_largest_region():
