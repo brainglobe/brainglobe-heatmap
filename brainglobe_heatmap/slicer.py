@@ -6,6 +6,14 @@ from brainrender.scene import Scene
 
 from brainglobe_heatmap.plane import Plane
 
+# Atlas-space (AP, DV, LR) -> 2D (x, y) projection for each plane,
+# keyed by the index of the axis orthogonal to it (see get_ax_idx)
+PROJ_M = {
+    0: np.array([[0, 0], [0, 1], [1, 0]]),  # frontal: x=LR, y=DV
+    1: np.array([[0, 1], [0, 0], [1, 0]]),  # horizontal: x=LR, y=AP
+    2: np.array([[1, 0], [0, 1], [0, 0]]),  # sagittal: x=AP, y=DV
+}
+
 
 def get_ax_idx(orientation: str) -> int:
     """
@@ -73,13 +81,7 @@ class Slicer:
             u1, v1 = u0.copy(), -v0.copy()  # set u1:=u0 and v1:=-v0
             plane1 = Plane(p1, u1, v1)
 
-            # M for 2D
-            if orientation == "frontal":
-                self._proj_M = np.array([[0, 0], [0, 1], [1, 0]])
-            elif orientation == "sagittal":
-                self._proj_M = np.array([[1, 0], [0, 1], [0, 0]])
-            else:  # orientation == "horizontal"
-                self._proj_M = np.array([[0, 1], [0, 0], [1, 0]])
+            self._proj_M = PROJ_M[axidx]
         else:
             orientation = np.array(orientation)
 
@@ -90,29 +92,8 @@ class Slicer:
             norm1 = -orientation  # type: ignore
             plane1 = Plane.from_norm(p1, norm1)
 
-            # M based on dominant axis
-            norm = orientation / np.linalg.norm(orientation)
-            # _project_to_2d unflips Z before projecting
-            # the effective normal in atlas space is (nx, ny, -nz)
-            norm[2] = -norm[2]  # atlas-space normal
-            dominant = np.argmax(np.abs(orientation))
-            if dominant == 0:  # frontal-like
-                u_proj = np.array([0.0, 0.0, 1.0])
-                v_proj = np.array([0.0, 1.0, 0.0])
-            elif dominant == 1:  # horizontal-like
-                u_proj = np.array([0.0, 0.0, 1.0])
-                v_proj = np.array([1.0, 0.0, 0.0])
-            else:  # sagittal-like
-                u_proj = np.array([1.0, 0.0, 0.0])
-                v_proj = np.array([0.0, 1.0, 0.0])
-
-            u_proj = u_proj - np.dot(u_proj, norm) * norm
-            u_proj = u_proj / np.linalg.norm(u_proj)
-            v_candidate = np.cross(norm, u_proj)
-            # flip image when dominant changes
-            if np.dot(v_candidate, v_proj) < 0:
-                v_candidate = -v_candidate
-            self._proj_M = np.vstack([u_proj, v_candidate]).T
+            dominant = int(np.argmax(np.abs(orientation)))
+            self._proj_M = PROJ_M[dominant]
 
         self.plane0 = Actor(
             plane0,
@@ -200,7 +181,16 @@ def get_structures_slice_coords(
     """
     Given a list of region name and a set of plane parameters,
     it returns the coordinates of the plane/regions'
-    intersection in the plane's coordinates
+    intersection in atlas space (µm):
+
+    - frontal-like planes: (LR, DV)
+    - horizontal-like planes: (LR, AP)
+    - sagittal-like planes: (AP, DV)
+
+    Tuple orientations use the axes of the named plane closest to them
+    (largest normal component). Each point keeps its own atlas coordinates,
+    i.e. oblique slices are viewed along that axis, so distances along the
+    tilted direction are shortened by cos(tilt).
     """
 
     scene = Scene(atlas_name=atlas_name, check_latest=check_latest)

@@ -12,6 +12,15 @@ ATLAS_NAME = "allen_mouse_25um"
 REGIONS = ["HIP"]
 POSITION = (8000, 5000, 5000)
 THRESHOLD_UM = 75  # 3 voxels at 25µm resolution
+OBLIQUE_ORIENTATIONS = [
+    (1, 0.3, 0),
+    (1, 0, 0.3),
+    (0.3, 1, 0),
+    (0, 1, 0.3),
+    (0.3, 0, 1),
+    (0, 0.3, 1),
+    (1, 1, 0),
+]
 
 
 @pytest.fixture(scope="module")
@@ -130,4 +139,73 @@ def test_oblique_orientation_has_2d_spread(orientation):
         f"orientation={orientation}: "
         f"spread={spread[1]:.0f} µm "
         f"(min {MIN_SPREAD_UM} µm expected)"
+    )
+
+
+# Expects oblique 2D coords to be real atlas coords: recovering the dropped
+# axis from the plane equation must land the point on the region in the
+# annotation volume
+@pytest.mark.parametrize("orientation", OBLIQUE_ORIENTATIONS)
+@pytest.mark.parametrize("region", REGIONS)
+def test_oblique_coords_match_annotation(atlas, orientation, region):
+    from scipy.spatial import cKDTree
+
+    # 2D (x, y) -> atlas axes (AP=0, DV=1, LR=2), by dominant axis
+    PLANE_AXES = {0: (2, 1), 1: (2, 0), 2: (0, 1)}
+
+    atlas_resolution = atlas.resolution[0]
+
+    coords = bgh.get_structures_slice_coords(
+        [region], position=POSITION, orientation=orientation
+    )
+    pts_2d = np.vstack(coords[region])
+
+    # orientation is given in brainrender space (LR flipped)
+    normal = np.array(orientation, dtype=float)
+    normal[2] = -normal[2]
+    dropped = int(np.argmax(np.abs(orientation)))
+    x_axis, y_axis = PLANE_AXES[dropped]
+
+    pts_3d = np.zeros((len(pts_2d), 3))
+    pts_3d[:, x_axis] = pts_2d[:, 0]
+    pts_3d[:, y_axis] = pts_2d[:, 1]
+    pts_3d[:, dropped] = (
+        normal @ np.array(POSITION, dtype=float)
+        - normal[x_axis] * pts_2d[:, 0]
+        - normal[y_axis] * pts_2d[:, 1]
+    ) / normal[dropped]
+
+    mask_voxels = np.argwhere(atlas.get_structure_mask(region) > 0)
+    distances, _ = cKDTree(mask_voxels * atlas_resolution).query(pts_3d)
+    p95 = np.percentile(distances, 95)
+
+    assert p95 < THRESHOLD_UM, (
+        f"{orientation}/{region}: "
+        f"2D coords are not at the region's 3D atlas position. "
+        f"p95={p95:.0f} µm, threshold={THRESHOLD_UM} µm"
+    )
+
+
+# Expects oblique coords to stay within the atlas, i.e. no negative axes
+@pytest.mark.parametrize("orientation", OBLIQUE_ORIENTATIONS)
+def test_oblique_coords_within_atlas_bounds(atlas, orientation):
+    PLANE_AXES = {0: (2, 1), 1: (2, 0), 2: (0, 1)}
+
+    coords = bgh.get_structures_slice_coords(
+        REGIONS, position=POSITION, orientation=orientation
+    )
+    root_pts = np.vstack(coords["root"])
+
+    extent = np.array(atlas.shape) * atlas.resolution[0]
+    x_axis, y_axis = PLANE_AXES[int(np.argmax(np.abs(orientation)))]
+    upper = extent[[x_axis, y_axis]]
+
+    # root mesh can overshoot the volume by less than a voxel
+    tolerance = atlas.resolution[0]
+    assert (
+        root_pts >= -tolerance
+    ).all(), f"orientation={orientation}: min={root_pts.min(axis=0)}"
+    assert (root_pts <= upper + tolerance).all(), (
+        f"orientation={orientation}: max={root_pts.max(axis=0)}, "
+        f"atlas extent={upper}"
     )
