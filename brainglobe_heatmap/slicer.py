@@ -64,7 +64,7 @@ class Slicer:
         if isinstance(orientation, str):
             axidx = get_ax_idx(orientation)
 
-            # get the two points the plances are centered at
+            # get the two points the planes are centered at
             shift = np.zeros(3)
             shift[axidx] -= thickness
             p1 = _position - shift
@@ -162,7 +162,7 @@ class Slicer:
 
     def slice_scene(self, scene: Scene, regions: List[Actor]):
         """
-        Slices the meshes in a 3D brainrender scene using the gien planes
+        Slices the meshes in a 3D brainrender scene using the given planes
         """
         # slice the scene
         for _, plane in enumerate((self.plane0, self.plane1)):
