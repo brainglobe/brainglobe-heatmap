@@ -67,16 +67,12 @@ class Plane:
             origin=self.center, normal=self.normal
         )
 
-    def get_projections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
+    def get_intersections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
         """
-        Intersect meshes with this plane and project to local 2D coordinates.
-
-        Returns coordinates relative to the plane center using the plane's
-        own u,v basis vectors: (0, 0) corresponds to the plane center.
-        For atlas-space coordinates, use Slicer.get_structures_slice_coords().
-
+        Intersect meshes with this plane, returning the 3D points of each
+        contour keyed by "<actor name>_segment_<n>".
         """
-        projected = {}
+        intersections = {}
         for actor in actors:
             mesh: vd.Mesh = actor._mesh
             if not mesh.is_closed():
@@ -88,10 +84,22 @@ class Plane:
             for piece_n, piece in enumerate(pieces):
                 # sort coordinates
                 points = self._join_reset(piece).vertices
-                projected[actor.name + f"_segment_{piece_n}"] = self.p3_to_p2(
-                    points
-                )
-        return projected
+                intersections[actor.name + f"_segment_{piece_n}"] = points
+        return intersections
+
+    def get_projections(self, actors: List[Actor]) -> Dict[str, np.ndarray]:
+        """
+        Intersect meshes with this plane and project to local 2D coordinates.
+
+        Returns coordinates relative to the plane center using the plane's
+        own u,v basis vectors: (0, 0) corresponds to the plane center.
+        For atlas-space coordinates, use Slicer.get_structures_slice_coords().
+
+        """
+        return {
+            key: self.p3_to_p2(points)
+            for key, points in self.get_intersections(actors).items()
+        }
 
     @staticmethod
     def _join_reset(piece: vd.Mesh) -> vd.Mesh:
