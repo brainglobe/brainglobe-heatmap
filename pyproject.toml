@@ -3,7 +3,7 @@ name = "brainglobe-heatmap"
 authors = [{ name = "Federico Claudi", email = "hello@brainglobe.info" }]
 description = "Rendering anatomical heatmaps with brainrender and matplotlib"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dynamic = ["version"]
 
 dependencies = ["brainrender>=2.2.0", "matplotlib", "numpy", "myterial", "rich", "shapely"]
@@ -14,9 +14,9 @@ classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
 ]
@@ -56,7 +56,7 @@ exclude = ["tests*"]
 addopts = "--cov=brainglobe_heatmap --cov-report=xml --color=yes -vv"
 
 [tool.black]
-target-version = ['py311','py312', 'py313']
+target-version = ['py312', 'py313', 'py314']
 skip-string-normalization = false
 line-length = 79
 
