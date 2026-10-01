@@ -32,6 +32,7 @@ classifiers = [
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-mock",
     "coverage",
     "numba >= 0.61.0", # Fix for uv pip install
     "black",
