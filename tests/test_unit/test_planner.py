@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import numpy as np
 import pytest
 
@@ -60,10 +58,18 @@ def test_print_plane_rounds_center_to_two_decimals(capsys):
     assert "1.23456" not in captured
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_converts_region_list_to_dict(mock_init):
+def test_plan_converts_region_list_to_dict(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We only care that region names are converted to the Heatmap input
+    format.
+    """
+    mock_init = mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -84,10 +90,17 @@ def test_plan_converts_region_list_to_dict(mock_init):
     assert passed_regions == {"TH": 1, "RSP": 1, "AI": 1}
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_passes_dict_regions_unchanged(mock_init):
+def test_plan_passes_dict_regions_unchanged(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We validate that dict inputs are preserved without extra conversion.
+    """
+    mock_init = mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -108,10 +121,17 @@ def test_plan_passes_dict_regions_unchanged(mock_init):
     assert passed_regions == {"TH": 0.5, "RSP": -1.2}
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_always_passes_3d_format(mock_init):
+def test_plan_always_passes_3d_format(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We assert the format flag independent of any real Heatmap setup.
+    """
+    mock_init = mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -130,10 +150,18 @@ def test_plan_always_passes_3d_format(mock_init):
     assert call_kwargs["format"] == "3D"
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_stores_arrow_scale(mock_init):
+def test_plan_stores_arrow_scale(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We validate custom arrow scale state without constructing the real
+    scene.
+    """
+    mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -150,10 +178,17 @@ def test_plan_stores_arrow_scale(mock_init):
     assert p.arrow_scale == 750
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_default_arrow_scale(mock_init):
+def test_plan_default_arrow_scale(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We verify the default arrow scale for the planner object itself.
+    """
+    mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -170,13 +205,20 @@ def test_plan_default_arrow_scale(mock_init):
     assert p.arrow_scale == 10
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-@patch("brainglobe_heatmap.planner.print_plane")
-def test_plan_prints_both_slicer_planes(mock_print, mock_init):
+def test_plan_prints_both_slicer_planes(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We validate the plane printing side effect without real rendering.
+    """
+    mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
+    mock_print = mocker.patch("brainglobe_heatmap.planner.print_plane")
     p = plan.__new__(plan)
-    plane0 = MagicMock()
-    plane1 = MagicMock()
-    p.slicer = MagicMock(plane0=plane0, plane1=plane1)
+    plane0 = mocker.MagicMock()
+    plane1 = mocker.MagicMock()
+    p.slicer = mocker.MagicMock(plane0=plane0, plane1=plane1)
 
     plan.__init__(p, {"TH": 1}, position=(5000,))
 
@@ -189,10 +231,18 @@ def test_plan_prints_both_slicer_planes(mock_print, mock_init):
     assert second_call[0][1] is plane1
 
 
-@patch("brainglobe_heatmap.planner.Heatmap.__init__", return_value=None)
-def test_plan_forwards_kwargs_to_heatmap(mock_init):
+def test_plan_forwards_kwargs_to_heatmap(mocker):
+    """Exercise the planner initializer in isolation.
+
+    We assert the forwarded Heatmap kwargs while keeping setup
+    lightweight.
+    """
+    mock_init = mocker.patch(
+        "brainglobe_heatmap.planner.Heatmap.__init__",
+        return_value=None,
+    )
     p = plan.__new__(plan)
-    p.slicer = MagicMock(
+    p.slicer = mocker.MagicMock(
         plane0=Plane(
             np.array([0, 0, 0], dtype=float),
             np.array([1, 0, 0], dtype=float),
@@ -218,30 +268,30 @@ def test_plan_forwards_kwargs_to_heatmap(mock_init):
     assert call_kwargs["thickness"] == 2000
 
 
-def test_show_returns_scene():
+def test_show_returns_scene(mocker):
     p = plan.__new__(plan)
     p.arrow_scale = 10
     p.interactive = False
     p.zoom = None
 
-    mock_scene = MagicMock()
+    mock_scene = mocker.MagicMock()
     mock_scene.root._mesh.alpha.return_value = None
     p.scene = mock_scene
 
-    fake_plane = MagicMock()
+    fake_plane = mocker.MagicMock()
     fake_plane.center = [0, 0, 0]
     fake_plane.normal = [1, 0, 0]
     fake_plane.u = [0, 1, 0]
     fake_plane.v = [0, 0, 1]
 
-    plane_mesh = MagicMock()
+    plane_mesh = mocker.MagicMock()
     plane_mesh.alpha.return_value = plane_mesh
     plane_mesh.color.return_value = plane_mesh
     plane_mesh.center = [0, 0, 0]
     plane_mesh.width = 1000
     fake_plane.to_mesh.return_value = plane_mesh
 
-    p.slicer = MagicMock(plane0=fake_plane, plane1=fake_plane)
+    p.slicer = mocker.MagicMock(plane0=fake_plane, plane1=fake_plane)
     p.regions_meshes = []
 
     result = p.show()
@@ -250,29 +300,29 @@ def test_show_returns_scene():
     mock_scene.render.assert_called_once_with(interactive=False, zoom=None)
 
 
-def test_show_sets_root_alpha():
+def test_show_sets_root_alpha(mocker):
     p = plan.__new__(plan)
     p.arrow_scale = 10
     p.interactive = False
     p.zoom = None
 
-    mock_scene = MagicMock()
+    mock_scene = mocker.MagicMock()
     p.scene = mock_scene
 
-    fake_plane = MagicMock()
+    fake_plane = mocker.MagicMock()
     fake_plane.center = [0, 0, 0]
     fake_plane.normal = [1, 0, 0]
     fake_plane.u = [0, 1, 0]
     fake_plane.v = [0, 0, 1]
 
-    plane_mesh = MagicMock()
+    plane_mesh = mocker.MagicMock()
     plane_mesh.alpha.return_value = plane_mesh
     plane_mesh.color.return_value = plane_mesh
     plane_mesh.center = [0, 0, 0]
     plane_mesh.width = 500
     fake_plane.to_mesh.return_value = plane_mesh
 
-    p.slicer = MagicMock(plane0=fake_plane, plane1=fake_plane)
+    p.slicer = mocker.MagicMock(plane0=fake_plane, plane1=fake_plane)
     p.regions_meshes = []
 
     p.show()
