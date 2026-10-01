@@ -77,7 +77,7 @@ class plan(Heatmap):
 
     def show(self):
         """
-        Renders the hetamap visualization as a 3D scene in brainrender.
+        Renders the heatmap visualization as a 3D scene in brainrender.
         """
         self.scene.root._mesh.alpha(0.3)
 
