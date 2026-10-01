@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock
-
 import numpy as np
 import pytest
 
@@ -30,8 +28,8 @@ def test_get_ax_idx_case_sensitive():
         get_ax_idx("Frontal")
 
 
-def test_position_float_with_vector_orientation_raises():
-    root = MagicMock()
+def test_position_float_with_vector_orientation_raises(mocker):
+    root = mocker.MagicMock()
     root.center_of_mass.return_value = np.array([0, 0, 0])
 
     with pytest.raises(ValueError):

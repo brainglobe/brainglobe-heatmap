@@ -39,7 +39,7 @@ def test_p3_to_p2_projection():
 
     plane = Plane(origin, u, v)
 
-    points_3d = np.array([[1, 2, 0], [3, 4, 0]])
+    points_3d = np.array([[1, 2, 5], [3, 4, 5]])
 
     projected = plane.p3_to_p2(points_3d)
 
