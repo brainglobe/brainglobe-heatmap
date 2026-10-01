@@ -217,7 +217,9 @@ def test_dict_alpha_render_applies_to_matching_regions():
     heatmap.scene.close()
 
 
-def test_render_global_alpha_calls_actor_alpha(mocker, heatmap_3d_global_alpha):
+def test_render_global_alpha_calls_actor_alpha(
+    mocker, heatmap_3d_global_alpha
+):
     """render() must call actor.alpha() for every region
     when alpha is a float."""
     mock_actor = mocker.MagicMock()
