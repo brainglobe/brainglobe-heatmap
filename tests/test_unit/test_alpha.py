@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import matplotlib as mpl
 import pytest
 from brainrender import settings
@@ -140,13 +138,13 @@ def test_dict_alpha_stored(heatmap_3d_dict_alpha):
     assert heatmap_3d_dict_alpha.alpha == {"HIP": 0.2, "TH": 0.9}
 
 
-def test_alpha_none_does_not_call_actor_alpha(heatmap_3d_no_alpha):
+def test_alpha_none_does_not_call_actor_alpha(mocker, heatmap_3d_no_alpha):
     """When alpha is None, actor.alpha() must never be called."""
-    with patch("brainrender.scene.Scene.get_actors") as mock_get_actors:
-        mock_actor = MagicMock()
-        mock_get_actors.return_value = [mock_actor]
-        heatmap_3d_no_alpha.render()
-        mock_actor.alpha.assert_not_called()
+    mock_get_actors = mocker.patch("brainrender.scene.Scene.get_actors")
+    mock_actor = mocker.MagicMock()
+    mock_get_actors.return_value = [mock_actor]
+    heatmap_3d_no_alpha.render()
+    mock_actor.alpha.assert_not_called()
 
 
 def test_dict_alpha_only_specified_regions(heatmap_3d_dict_alpha):
@@ -219,24 +217,24 @@ def test_dict_alpha_render_applies_to_matching_regions():
     heatmap.scene.close()
 
 
-def test_render_global_alpha_calls_actor_alpha(heatmap_3d_global_alpha):
+def test_render_global_alpha_calls_actor_alpha(mocker, heatmap_3d_global_alpha):
     """render() must call actor.alpha() for every region
     when alpha is a float."""
-    mock_actor = MagicMock()
+    mock_actor = mocker.MagicMock()
     mock_actor.name = "mock_region"
     mock_actor._mesh.vertices = []
 
-    with patch.object(
+    mocker.patch.object(
         heatmap_3d_global_alpha.scene,
         "get_actors",
         return_value=[mock_actor],
-    ):
-        heatmap_3d_global_alpha.render()
+    )
+    heatmap_3d_global_alpha.render()
 
     mock_actor.alpha.assert_called_with(0.4)
 
 
-def test_render_dict_alpha_calls_actor_alpha_for_matching_region():
+def test_render_dict_alpha_calls_actor_alpha_for_matching_region(mocker):
     """render() must call actor.alpha() only for regions in the dict."""
     heatmap = bgh.Heatmap(
         EXAMPLE_VALUES,
@@ -247,7 +245,7 @@ def test_render_dict_alpha_calls_actor_alpha_for_matching_region():
 
     mock_actors = {}
     for region in EXAMPLE_VALUES:
-        actor = MagicMock()
+        actor = mocker.MagicMock()
         actor.name = region
         actor._mesh.vertices = []
         mock_actors[region] = actor
@@ -255,10 +253,10 @@ def test_render_dict_alpha_calls_actor_alpha_for_matching_region():
     def fake_get_actors(br_class=None, name=None):
         return [mock_actors[name]]
 
-    with patch.object(
+    mocker.patch.object(
         heatmap.scene, "get_actors", side_effect=fake_get_actors
-    ):
-        heatmap.render()
+    )
+    heatmap.render()
 
     # TH is in the dict — alpha should be called
     mock_actors["TH"].alpha.assert_called_with(0.9)

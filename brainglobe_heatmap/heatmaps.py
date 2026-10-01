@@ -179,7 +179,8 @@ class Heatmap:
             If a float, the same alpha is applied to all regions.
             If a dict, maps region acronyms to individual alpha values.
             Values must be between 0.0 (fully transparent) and
-            1.0 (fully opaque). Regions not present in a dict keep
+            1.0 (fully opaque). Region acronyms need to be a subset of 
+            `values` argument. Regions not present in a dict keep
             their default opacity. Has no effect in 2D format.
             Default is None.
         check_latest : bool, optional
@@ -210,6 +211,11 @@ class Heatmap:
                         raise ValueError(
                             f"`alpha` for region '{region_name}' must be "
                             f"between 0.0 and 1.0, got {alpha_val}"
+                        )
+                    if not region_name in values.keys():
+                        raise ValueError(
+                            f"`alpha` specified for region '{region_name}',"
+                            f"but region was not specified in values."
                         )
             else:
                 raise TypeError(
