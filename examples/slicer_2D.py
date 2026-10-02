@@ -33,12 +33,12 @@ f, ax = plt.subplots(figsize=(6, 9))
 plt.imshow(confocal_slice, cmap="gray_r")
 for struct_name, contours in coords_dict.items():
     for cont in contours:
-        plt.fill(cont[:, 0], -cont[:, 1], lw=1, fc="none", ec="k")
+        plt.fill(cont[:, 0], cont[:, 1], lw=1, fc="none", ec="k")
 
         # write outlined text to label each brain region
         txt = plt.text(
             cont[:, 0].mean(),
-            -cont[:, 1].mean(),
+            cont[:, 1].mean(),
             struct_name[:4] + ".",
             ha="center",
             va="center",
