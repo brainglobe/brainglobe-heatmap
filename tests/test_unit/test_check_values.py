@@ -113,3 +113,22 @@ class Test_InvalidInput:
         values = {"TH": 1, "UNKNOWN": 1}
         with pytest.raises(ValueError, match="not recognized"):
             check_values(values, mock_atlas)
+
+
+# Tests for per-hemisphere dict values
+class TestPerHemisphere:
+    def test_range_spans_scalar_and_per_hemisphere(self, mock_atlas):
+        values = {"TH": 1.0, "RSP": {"left": 0.8, "right": 0.2}}
+        assert check_values(values, mock_atlas) == (1.0, 0.2)
+
+    def test_single_side(self, mock_atlas):
+        assert check_values({"TH": {"right": 0.3}}, mock_atlas) == (0.3, 0.3)
+
+    @pytest.mark.parametrize("bad", [{}, {"left": 1, "center": 2}])
+    def test_bad_sides_raise(self, mock_atlas, bad):
+        with pytest.raises(ValueError, match="must have"):
+            check_values({"TH": bad}, mock_atlas)
+
+    def test_non_numeric_side_raises(self, mock_atlas):
+        with pytest.raises(ValueError, match=r"TH\[left\]"):
+            check_values({"TH": {"left": "high"}}, mock_atlas)

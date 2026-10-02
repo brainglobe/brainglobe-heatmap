@@ -32,19 +32,34 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     """
     Checks that the passed heatmap values meet two criteria:
         - keys should be acronyms of brainregions
-        - values should be numbers
+        - values should be numbers, or dicts with "left" and/or "right"
+          keys mapping to numbers
     """
+    scalars = []
     for k, v in values.items():
-        if not isinstance(v, (float, int)):
-            raise ValueError(
-                f"Heatmap values should be floats, "
-                f'not: {type(v)} for entry "{k}"'
-            )
+        if isinstance(v, dict):
+            if not v or not v.keys() <= {"left", "right"}:
+                raise ValueError(
+                    f'Per-hemisphere values for "{k}" must have "left" '
+                    f'and/or "right" keys, got: {list(v.keys())}'
+                )
+            sides = list(v.items())
+        else:
+            sides = [(None, v)]
+
+        for side, sv in sides:
+            if not isinstance(sv, (float, int)):
+                entry = k if side is None else f"{k}[{side}]"
+                raise ValueError(
+                    f"Heatmap values should be floats, "
+                    f'not: {type(sv)} for entry "{entry}"'
+                )
+            scalars.append(sv)
 
         if k not in atlas.lookup_df.acronym.values:
             raise ValueError(f'Region name "{k}" not recognized')
 
-    not_nan = [v for v in values.values() if not np.isnan(v)]
+    not_nan = [v for v in scalars if not np.isnan(v)]
     if len(not_nan) == 0:
         return np.nan, np.nan
     vmax, vmin = max(not_nan), min(not_nan)
@@ -93,6 +108,27 @@ def find_annotation_position_inside_polygon(
     return label_position.x, label_position.y
 
 
+def flatten_values(values: dict) -> Dict[str, float]:
+    """
+    Flattens per-hemisphere values so every actor name maps to one number:
+    {"TH": 1, "VISp": {"left": 0.8}} -> {"TH": 1, "VISp__left": 0.8}
+    """
+    flat = {}
+    for region, v in values.items():
+        if isinstance(v, dict):
+            for side, sv in v.items():
+                flat[f"{region}__{side}"] = sv
+        else:
+            flat[region] = v
+    return flat
+
+
+def display_name(actor_name: str) -> str:
+    """ "VISp__left" -> "VISp (left)", "TH" -> "TH" """
+    acronym, _, side = actor_name.partition("__")
+    return f"{acronym} ({side})" if side else acronym
+
+
 class Heatmap:
     def __init__(
         self,
@@ -125,7 +161,10 @@ class Heatmap:
         ----------
         values : dict
             Dictionary with brain regions acronyms as keys and
-            magnitudes as the values.
+            magnitudes as the values. A value can also be a dict with
+            "left" and/or "right" keys to show different magnitudes in
+            each hemisphere, e.g. {"TH": 1.0, "VISp": {"left": 0.8,
+            "right": 0.2}, "MOp": {"left": 0.5}}.
         position : list, tuple, np.ndarray, float
             Position of the plane in the atlas.
         orientation : str or tuple, optional
@@ -133,7 +172,8 @@ class Heatmap:
             "sagittal", "horizontal" or a tuple with the normal vector.
             Default is "frontal".
         hemisphere : str, optional
-            Hemisphere to display the heatmap. Default is "both".
+            Hemisphere to display the heatmap. Only applies to regions
+            with a single (non per-hemisphere) value. Default is "both".
         title : str, optional
             Title of the heatmap. Default is None.
         cmap : str, optional
@@ -237,7 +277,19 @@ class Heatmap:
         self.prepare_colors(values, cmap, vmin, vmax)
 
         # add regions to the brainrender scene
-        self.scene.add_brain_region(*self.values.keys(), hemisphere=hemisphere)
+        bilateral = [r for r, v in values.items() if not isinstance(v, dict)]
+        if bilateral:
+            self.scene.add_brain_region(*bilateral, hemisphere=hemisphere)
+
+        # per-hemisphere regions get one actor per side, renamed to
+        # "REGION__side" so colors and slice segments stay distinct
+        for region, sides in values.items():
+            if isinstance(sides, dict):
+                for side in sides:
+                    actor = self.scene.add_brain_region(
+                        region, hemisphere=side
+                    )
+                    actor.name = f"{region}__{side}"
 
         self.regions_meshes = [
             r
@@ -266,7 +318,7 @@ class Heatmap:
 
         self.colors = {
             r: list(map_color(v, name=cmap, vmin=vmin, vmax=vmax))
-            for r, v in values.items()
+            for r, v in flatten_values(values).items()
         }
         self.colors["root"] = settings.ROOT_COLOR
 
@@ -345,16 +397,17 @@ class Heatmap:
                 br_class="brain region", name=region
             )[0]
             region_actor.color(color)
+            acronym = region.split("__")[0]
 
             # apply transparency if requested
             if self.alpha is not None:
                 if isinstance(self.alpha, dict):
-                    if region in self.alpha:
-                        region_actor.alpha(float(self.alpha[region]))
+                    if acronym in self.alpha:
+                        region_actor.alpha(float(self.alpha[acronym]))
                 else:
                     region_actor.alpha(float(self.alpha))
 
-            display_text = self.get_region_annotation_text(region_actor.name)
+            display_text = self.get_region_annotation_text(acronym)
 
             if (
                 len(region_actor._mesh.vertices) > 0
@@ -541,18 +594,23 @@ class Heatmap:
             segment_nr = segment["segment_nr"]
             coords = segment["coords"]
 
+            acronym = name.split("__")[0]
             ax.fill(
                 coords[:, 0],
                 coords[:, 1],
                 color=self.colors[name],
-                label=name if segment_nr == "0" and name != "root" else None,
+                label=(
+                    display_name(name)
+                    if segment_nr == 0 and name != "root"
+                    else None
+                ),
                 lw=1,
                 ec="k",
                 zorder=-1 if name == "root" else None,
                 alpha=0.3 if name == "root" else None,
             )
 
-            display_text = self.get_region_annotation_text(str(name))
+            display_text = self.get_region_annotation_text(acronym)
             if display_text is not None:
                 annotation_pos = find_annotation_position_inside_polygon(
                     coords
@@ -591,27 +649,30 @@ class Heatmap:
                     if name != "root":
                         unique_visible_regions.add(name)
 
-                if isinstance(self.label_regions, dict):
-                    regions_to_label = (
-                        set(self.label_regions.keys()) & unique_visible_regions
-                    )
-                elif isinstance(self.label_regions, list):
-                    regions_to_label = (
-                        set(self.label_regions) & unique_visible_regions
-                    )
+                if isinstance(self.label_regions, (dict, list)):
+                    regions_to_label = {
+                        r
+                        for r in unique_visible_regions
+                        if r.split("__")[0] in self.label_regions
+                    }
                 else:
                     regions_to_label = unique_visible_regions
 
+                flat_values = flatten_values(self.values)
                 tick_labels: list[str] = []
                 tick_values: list[float] = []
                 for region in regions_to_label:
-                    value = self.values[region]
+                    value = flat_values[region]
                     if value > self.vmax or value < self.vmin:
                         continue
                     if isinstance(self.label_regions, dict):
-                        tick_labels.append(str(self.label_regions[region]))
+                        acronym, _, side = region.partition("__")
+                        label = str(self.label_regions[acronym])
+                        tick_labels.append(
+                            f"{label} ({side})" if side else label
+                        )
                     else:
-                        tick_labels.append(region)
+                        tick_labels.append(display_name(region))
                     tick_values.append(value)
 
                 cbar.set_ticks(ticks=tick_values, labels=tick_labels)
