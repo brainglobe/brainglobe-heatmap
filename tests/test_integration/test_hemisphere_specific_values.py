@@ -32,11 +32,16 @@ def test_one_actor_per_side(heatmap):
     assert names == {"TH", "VISp__left", "VISp__right"}
 
 
-def test_sides_are_cut_to_their_hemisphere(heatmap):
-    mid_z = heatmap.scene.root._mesh.bounds().reshape(3, 2).mean(axis=1)[2]
-    actors = {a.name: a for a in heatmap.regions_meshes}
-    assert actors["VISp__left"]._mesh.vertices[:, 2].max() <= mid_z + 1e-3
-    assert actors["VISp__right"]._mesh.vertices[:, 2].min() >= mid_z - 1e-3
+def test_sides_match_atlas_hemisphere(heatmap):
+    # brainrender renders with z negated; undo it to query the atlas
+    for actor in heatmap.regions_meshes:
+        if "__" not in actor.name:
+            continue
+        com = actor._mesh.vertices.mean(axis=0) * (1, 1, -1)
+        side = heatmap.scene.atlas.hemisphere_from_coords(
+            com, microns=True, as_string=True
+        )
+        assert actor.name.endswith(f"__{side}")
 
 
 def test_colors_and_range(heatmap):
