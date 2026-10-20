@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Union
 
 import matplotlib as mpl
@@ -5,11 +6,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from brainrender import Scene, cameras, settings
 from brainrender.atlas import Atlas
+from matplotlib.patches import PathPatch
+from matplotlib.path import Path
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from myterial import grey_darker
-from shapely import Polygon
+from shapely import Polygon, get_parts, make_valid, union_all
 from shapely.algorithms.polylabel import polylabel
-from shapely.geometry.multipolygon import MultiPolygon
 from vedo.colors import color_map as map_color
 
 from brainglobe_heatmap.slicer import Slicer
@@ -66,46 +68,80 @@ def check_values(values: dict, atlas: Atlas) -> Tuple[float, float]:
     return vmax, vmin
 
 
-def find_annotation_position_inside_polygon(
-    polygon_vertices: np.ndarray,
-) -> Union[Tuple[float, float], None]:
+def region_polygons(
+    contours: List[np.ndarray],
+) -> Tuple[List[Polygon], List[Polygon]]:
     """
-    Finds a suitable point for annotation within a polygon.
+    Combines a region's slice contours into polygons with holes.
+
+    A mesh sliced by a plane gives one closed contour per boundary, so a
+    region that surrounds another (e.g. ACB around aco) yields an outer
+    contour plus an inner one. A contour nested inside an odd number of
+    other contours is a hole. Contours at the same depth are unioned, so
+    pieces that merely overlap stay filled.
 
     Returns
     -------
-    Tuple[float, float] or None
-        A tuple (x, y) representing the point
-        None if not enough vertices to form a valid polygon.
-
-    Notes
-    -----
-    2D polygons only
-    Edge cases:
-    - Requires at least 4 vertices (< 4 returns None)
-    - For invalid polygons, reconstructs the polygon using buffer(0),
-      this resolves e.g., self-intersections
-    - For some types of invalid geometries,
-      buffer(0) may create a shapely MultiPolygon object by
-      splitting self-intersecting areas into separate valid polygons.
-      When this happens, the function gets the largest polygon by area.
-    - Uses Shapely's polylabel algorithm with a tolerance of 0.1
-      that accepts a polygon after edge cases are resolved.
+    polygons : list of Polygon
+        Shapes to draw, with holes as interiors.
+    label_areas : list of Polygon
+        One area per filled contour (e.g. per hemisphere) to annotate.
     """
-    if polygon_vertices.shape[0] < 4:
-        return None
-    polygon = Polygon(polygon_vertices.tolist())
+    shapes = []
+    for coords in contours:
+        if coords.shape[0] < 3:
+            continue
+        # repair self-intersections; make_valid may return a collection
+        # holding a MultiPolygon, so flatten twice and drop stray lines
+        valid = make_valid(Polygon(coords.tolist()))
+        shapes += [
+            p for p in get_parts(get_parts(valid)) if isinstance(p, Polygon)
+        ]
 
-    if not polygon.is_valid:
-        polygon = polygon.buffer(0)
+    def nested(inner: Polygon, outer: Polygon) -> bool:
+        # within 1 µm of the outline counts as overlapping, not nested,
+        # e.g. slivers left where a mesh is cut at the midline
+        return outer.contains(inner) and outer.exterior.distance(inner) > 1
 
-    if polygon.geom_type == "MultiPolygon" and isinstance(
-        polygon, MultiPolygon
-    ):
-        polygon = max(polygon.geoms, key=lambda p: p.area)
+    depths = defaultdict(list)
+    for shape in shapes:
+        depth = sum(
+            other is not shape and nested(shape, other) for other in shapes
+        )
+        depths[depth].append(shape)
 
-    label_position = polylabel(polygon, tolerance=0.1)
-    return label_position.x, label_position.y
+    merged = Polygon()
+    for depth in sorted(depths):
+        layer = union_all(depths[depth])
+        merged = merged.difference(layer) if depth % 2 else merged.union(layer)
+    polygons = [p for p in get_parts(merged) if not p.is_empty]
+
+    label_areas = []
+    for depth, layer in depths.items():
+        if depth % 2:
+            continue
+        for shape in layer:
+            # skip slivers mostly inside a larger contour at the same depth;
+            # hemispheres overlapping at the midline share only a little
+            if any(
+                other.area > shape.area
+                and shape.intersection(other).area > shape.area / 2
+                for other in layer
+            ):
+                continue
+            pieces = get_parts(merged.intersection(shape))
+            pieces = [p for p in pieces if isinstance(p, Polygon)]
+            if pieces:
+                label_areas.append(max(pieces, key=lambda p: p.area))
+    return polygons, label_areas
+
+
+def polygon_to_path(polygon: Polygon) -> Path:
+    """Matplotlib path for a polygon, with its interiors as holes."""
+    return Path.make_compound_path(
+        Path(np.asarray(polygon.exterior.coords), closed=True),
+        *[Path(np.asarray(r.coords), closed=True) for r in polygon.interiors],
+    )
 
 
 def flatten_values(values: dict) -> Dict[str, float]:
@@ -567,66 +603,51 @@ class Heatmap:
             self.regions_meshes, self.scene.root
         )
 
-        segments = []
+        region_contours = defaultdict(list)
         for r, coords in projected.items():
-            name, segment_nr = r.split("_segment_")
-            x: np.ndarray = coords[:, 0]
-            y: np.ndarray = coords[:, 1]
-            # calculate area of polygon with Shoelace formula
-            area = 0.5 * np.abs(
-                np.dot(x, np.roll(y, 1)) - np.dot(y, np.roll(x, 1))
-            )
+            region_contours[r.split("_segment_")[0]].append(coords)
 
-            segments.append(
-                dict(
-                    name=name,
-                    segment_nr=int(segment_nr),
-                    coords=coords,
-                    area=area,
+        shapes = []
+        label_areas = []
+        for name, contours in region_contours.items():
+            polygons, areas = region_polygons(contours)
+            shapes += [(name, nr, p) for nr, p in enumerate(polygons)]
+            label_areas += [(name, area) for area in areas]
+        # Draw largest first so smaller regions stay on top
+        shapes.sort(key=lambda s: s[2].area, reverse=True)
+
+        for name, nr, polygon in shapes:
+            ax.add_patch(
+                PathPatch(
+                    polygon_to_path(polygon),
+                    facecolor=self.colors[name],
+                    label=(
+                        display_name(name)
+                        if nr == 0 and name != "root"
+                        else None
+                    ),
+                    lw=1,
+                    ec="k",
+                    zorder=-1 if name == "root" else None,
+                    alpha=0.3 if name == "root" else None,
                 )
             )
 
-        # Sort region segments by area (largest first)
-        segments.sort(key=lambda s: s["area"], reverse=True)
-
-        for segment in segments:
-            name = segment["name"]
-            segment_nr = segment["segment_nr"]
-            coords = segment["coords"]
-
-            acronym = name.split("__")[0]
-            ax.fill(
-                coords[:, 0],
-                coords[:, 1],
-                color=self.colors[name],
-                label=(
-                    display_name(name)
-                    if segment_nr == 0 and name != "root"
-                    else None
-                ),
-                lw=1,
-                ec="k",
-                zorder=-1 if name == "root" else None,
-                alpha=0.3 if name == "root" else None,
-            )
-
-            display_text = self.get_region_annotation_text(acronym)
+        for name, area in label_areas:
+            display_text = self.get_region_annotation_text(name.split("__")[0])
             if display_text is not None:
-                annotation_pos = find_annotation_position_inside_polygon(
-                    coords
+                annotation_pos = polylabel(area, tolerance=0.1)
+                ax.annotate(
+                    display_text,
+                    xy=(annotation_pos.x, annotation_pos.y),
+                    ha="center",
+                    va="center",
+                    **(
+                        self.annotate_text_options_2d
+                        if self.annotate_text_options_2d is not None
+                        else {}
+                    ),
                 )
-                if annotation_pos is not None:
-                    ax.annotate(
-                        display_text,
-                        xy=annotation_pos,
-                        ha="center",
-                        va="center",
-                        **(
-                            self.annotate_text_options_2d
-                            if self.annotate_text_options_2d is not None
-                            else {}
-                        ),
-                    )
 
         if show_cbar:
             # make colorbar
